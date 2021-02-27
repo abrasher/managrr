@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator typegraphql {
+  provider = "typegraphql-prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:managrr.db"
+}
+
+model Settings {
+  id             Int              @id @default(autoincrement())
+  language       String           @default("english")
+  port           Int              @default(4000)
+  plex           PlexSettings[]
+  SonarrSettings SonarrSettings[]
+  RadarrSettings RadarrSettings[]
+}
+
+model PlexSettings {
+  id                Int      @id @default(autoincrement())
+  friendlyName      String   @default("")
+  machineIdentifier String   @default("")
+  url               String   @unique
+  token             String
+  settings          Settings @relation(fields: [settingsId], references: [id])
+  settingsId        Int
+}
+
+model SonarrSettings {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  url        String   @unique
+  apiKey     String
+  settings   Settings @relation(fields: [settingsId], references: [id])
+  settingsId Int
+}
+
+model RadarrSettings {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  url        String   @unique
+  apiKey     String   @unique
+  settings   Settings @relation(fields: [settingsId], references: [id])
+  settingsId Int
+}

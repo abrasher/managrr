@@ -1,0 +1,7 @@
+{
+  "volar.tsPlugin": true,
+  "eslint.workingDirectories": ["./backend", "./frontend"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  }
+}
