@@ -1,12 +1,24 @@
-import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router"
+import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 
-import Home from "./views/Home.vue"
+import HomeView from './views/Home.vue'
+import PermissionsView from './views/Permissions.vue'
+import SettingsView from './views/Settings.vue'
 
 const routes: RouteRecordRaw[] = [
   {
-    path: "/",
-    name: "Home",
-    component: Home,
+    path: '/',
+    name: 'Home',
+    component: HomeView,
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: SettingsView,
+  },
+  {
+    path: '/permissions',
+    name: 'Permissions',
+    component: PermissionsView,
   },
 ]
 

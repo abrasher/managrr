@@ -1,19 +1,39 @@
-import "reflect-metadata"
-import express from "express"
-import { ApolloServer } from "apollo-server-express"
-import { buildSchema } from "type-graphql"
-import { SettingsResolver } from "./resolvers"
-import { ContextType } from "./types"
-import { PrismaClient } from "@prisma/client"
-import { prisma } from "./prisma"
-import { Container } from "typedi"
+import 'reflect-metadata'
+
+import { PrismaClient } from '@prisma/client'
+import { ApolloServer } from 'apollo-server-express'
+import express from 'express'
+import { buildSchema, registerEnumType } from 'type-graphql'
+import { Container } from 'typedi'
+
+import {
+  CollectionMode,
+  CollectionOrder,
+  LibraryType,
+} from './entities/movie.entity'
+import { prisma } from './prisma'
+import { PlexAccountResolver, SettingsResolver } from './resolvers'
+import { MovieResolver } from './resolvers/movie.resolver'
+import { ContextType } from './types'
 
 async function bootstrap() {
   try {
     Container.set(PrismaClient, prisma)
 
+    registerEnumType(LibraryType, {
+      name: 'PlexLibraryType',
+    })
+
+    registerEnumType(CollectionMode, {
+      name: 'PlexCollectionMode',
+    })
+
+    registerEnumType(CollectionOrder, {
+      name: 'PlexCollectionOrder',
+    })
+
     const schema = await buildSchema({
-      resolvers: [SettingsResolver],
+      resolvers: [SettingsResolver, PlexAccountResolver, MovieResolver],
       container: Container,
       emitSchemaFile: true,
     })
@@ -22,12 +42,19 @@ async function bootstrap() {
 
     const server = new ApolloServer({
       schema,
+
       context: (): ContextType => ({
         prisma,
       }),
     })
 
-    server.applyMiddleware({ app })
+    server.applyMiddleware({
+      app,
+      cors: {
+        origin: 'http://localhost:3000',
+        credentials: true,
+      },
+    })
 
     app.listen({ port: 4000 }, () => {
       console.log(`Server is listening at ${server.graphqlPath}`)

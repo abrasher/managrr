@@ -1,0 +1,14 @@
+query getSettings {
+  settings {
+    language
+    port
+    plexAccountToken
+    plex {
+      id
+      machineIdentifier
+      friendlyName
+      token
+      url
+    }
+  }
+}

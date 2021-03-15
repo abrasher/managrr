@@ -1,5 +1,6 @@
-import { Service } from 'typedi'
 import { PlexSettings, Settings } from '@generated/type-graphql'
+import { Service } from 'typedi'
+
 import { PlexServer } from '../plexapi'
 import {
   PlexSettingsInput,
@@ -16,6 +17,7 @@ export class SettingsRepository extends BaseRepository {
         data: {
           id: 1,
           language: 'english',
+          plexAccountToken: '',
           plex: undefined,
         },
       })

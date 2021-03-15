@@ -1,0 +1,7 @@
+mutation updateSettings($data: SettingsInput!) {
+  updateSettings(data: $data) {
+    language
+    port
+    plexAccountToken
+  }
+}

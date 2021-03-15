@@ -9,22 +9,25 @@ export class PlexSettingsInput implements Partial<PlexSettings> {
   @Field({
     description: 'URL of the Plex Server',
   })
-  url: string
+  url!: string
 
   @Field({
     description: 'Token for the Plex Server',
   })
-  token: string
+  token!: string
 }
 
 @ArgsType()
 @InputType()
-export class SettingsInput implements Partial<Settings> {
+export class SettingsInput implements Omit<Settings, 'id'> {
   @Field({ nullable: true })
-  port?: number
+  plexAccountToken!: string
 
   @Field({ nullable: true })
-  language?: string
+  port!: number
+
+  @Field({ nullable: true })
+  language!: string
 
   @Field((type) => [PlexSettingsInput], { nullable: true })
   plex?: PlexSettings[]

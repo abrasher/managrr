@@ -1,0 +1,9 @@
+mutation deletePlex($id: Int!) {
+  deletePlex(id: $id) {
+    id
+    friendlyName
+    machineIdentifier
+    url
+    token
+  }
+}

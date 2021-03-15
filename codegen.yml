@@ -1,9 +1,13 @@
 overwrite: true
-schema: "http://localhost:4000/graphql"
-documents: "frontend/src/graphql/**/*.graphql"
+schema: 'http://localhost:4000/graphql'
+documents: 'frontend/src/graphql/**/*.graphql'
+watch:
+  - 'frontend/src/graphql/**/*.graphql'
+  - 'backend/entities/*.ts'
+  - 'backend/resolvers/*.ts'
 generates:
   frontend/src/graphql/generated-types.ts:
     plugins:
-      - "typescript"
-      - "typescript-operations"
-      - "typed-document-node"
+      - 'typescript'
+      - 'typescript-operations'
+      - 'typed-document-node'

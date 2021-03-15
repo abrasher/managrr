@@ -1,6 +1,3 @@
-import { AxiosResponse } from 'axios'
-import { PlexSection } from './PlexLibrary'
-
 export class PlexMedia implements IPlexMedia {
   ratingKey: number
   key: string
@@ -9,10 +6,10 @@ export class PlexMedia implements IPlexMedia {
   title: string
   contentRating: string
   summary: string
-  rating: number
+  rating?: number
   audienceRating: number
   year: number
-  tagline: string
+  tagline?: string
   duration: number
   art: string
   media: IMedia[]
@@ -22,7 +19,7 @@ export class PlexMedia implements IPlexMedia {
   country: { tag: string }[]
   role: { tag: string }[]
   constructor(data: IPlexMedia) {
-    this.ratingKey = data.ratingKey
+    this.ratingKey = Number(data.ratingKey)
     this.key = data.key
     this.studio = data.studio
     this.type = data.type
@@ -52,10 +49,10 @@ export interface IPlexMedia {
   title: string
   contentRating: string
   summary: string
-  rating: number
+  rating?: number
   audienceRating: number
   year: number
-  tagline: string
+  tagline?: string
   duration: number
   art: string
   media: IMedia[]

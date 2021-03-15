@@ -1,0 +1,13 @@
+mutation updateUsers($data: [UpdateUserSharingInput!]!) {
+  updateUsers(data: $data) {
+    id
+    sharedServers {
+      id
+      machineIdentifier
+      allLibraries
+      libraries {
+        id
+      }
+    }
+  }
+}

@@ -3,9 +3,159 @@
 # !!!   DO NOT MODIFY THIS FILE BY YOURSELF   !!!
 # -----------------------------------------------
 
+interface AbsPlexDevice {
+  clientIdentifier: String!
+  connection: [PlexDeviceConnection!]!
+  createdAt: DateTime!
+  device: String!
+  id: String!
+  lastSeenAt: DateTime!
+  model: String!
+  name: String!
+  platform: String!
+  platformVersion: String!
+  product: String!
+  productVersion: String!
+  provides: String!
+  publicAddress: String!
+  token: String!
+  vendor: String!
+  version: String!
+}
+
+"""
+The javascript `Date` as string. Type represents date and time as the ISO Date string.
+"""
+scalar DateTime
+
+type Genre {
+  name: String!
+}
+
+"""Type of library (movie, show, photo, music)"""
+enum LibraryType {
+  movie
+  music
+  photo
+  show
+}
+
+type Movie {
+  contentRating: String!
+  duration: Float!
+  files: [MovieFile!]!
+  genres: [Genre!]!
+  id: Float!
+  plexCollections: [PlexCollection!]!
+  plexSections: [PlexSection!]!
+  studio: String!
+  title: String!
+  totalFileSize: Float!
+  year: Float!
+}
+
+type MovieFile {
+  monitored: String!
+  path: String!
+  radarrInstance: String!
+  size: Float!
+}
+
 type Mutation {
+  deletePlex(id: Int!): PlexSettings!
+  inviteUsers(data: [UpdateUserSharingInput!]!): [PlexUser!]!
   updatePlex(data: PlexSettingsInput!): PlexSettings!
   updateSettings(data: SettingsInput!): Settings!
+  updateUsers(data: [UpdateUserSharingInput!]!): [PlexUser!]!
+}
+
+"""Plex Account Model"""
+type PlexAccount {
+  devices: [PlexDevice!]!
+  email: String!
+  id: ID!
+  servers: [PlexDeviceServer!]!
+  token: String!
+  username: String!
+  users: [PlexUser!]!
+  uuid: String!
+}
+
+type PlexCollection {
+  background: String!
+  contentRating: String!
+  mode: PlexCollectionMode!
+  order: PlexCollectionOrder!
+  poster: String!
+  summary: String!
+  title: String!
+}
+
+enum PlexCollectionMode {
+  DEFAULT
+  HIDECOLLECTION
+  HIDEITEMS
+  SHOW
+}
+
+enum PlexCollectionOrder {
+  ALPHABETICAL
+  RELEASEDATE
+}
+
+type PlexDevice implements AbsPlexDevice {
+  clientIdentifier: String!
+  connection: [PlexDeviceConnection!]!
+  createdAt: DateTime!
+  device: String!
+  id: String!
+  lastSeenAt: DateTime!
+  model: String!
+  name: String!
+  platform: String!
+  platformVersion: String!
+  product: String!
+  productVersion: String!
+  provides: String!
+  publicAddress: String!
+  token: String!
+  vendor: String!
+  version: String!
+}
+
+type PlexDeviceConnection {
+  uri: String!
+}
+
+type PlexDeviceServer implements AbsPlexDevice {
+  clientIdentifier: String!
+  connection: [PlexDeviceConnection!]!
+  createdAt: DateTime!
+  device: String!
+  id: String!
+  lastSeenAt: DateTime!
+  libraries: [PlexSharedLibrary!]!
+  model: String!
+  name: String!
+  platform: String!
+  platformVersion: String!
+  product: String!
+  productVersion: String!
+  provides: String!
+  publicAddress: String!
+  token: String!
+  vendor: String!
+  version: String!
+}
+
+enum PlexLibraryType {
+  MOVIE
+  SHOW
+}
+
+type PlexSection {
+  name: String!
+  type: PlexLibraryType!
 }
 
 type PlexSettings {
@@ -25,19 +175,85 @@ input PlexSettingsInput {
   url: String!
 }
 
+type PlexSharedLibrary {
+  id: ID!
+  key: Float!
+  title: String!
+  type: LibraryType!
+}
+
+type PlexSharedServer {
+  accepted: Boolean!
+  acceptedAt: DateTime!
+  allLibraries: Boolean!
+  deletedAt: DateTime!
+  id: ID!
+  inviteToken: String!
+  invitedEmail: String!
+  invitedId: Float!
+  lastSeenAt: DateTime!
+  leftAt: DateTime!
+  libraries: [PlexSharedLibrary!]!
+  machineIdentifier: String!
+  name: String!
+  numLibraries: Float!
+  owned: Boolean!
+  ownerId: Float!
+  serverId: Float!
+}
+
+type PlexUser {
+  allowCameraUpload: Boolean!
+  allowChannels: Boolean!
+  allowSubtitleAdmin: Boolean!
+  allowSync: Boolean!
+  allowTuners: Boolean!
+  email: String!
+  filterAll: Boolean!
+  filterMovies: Boolean!
+  filterMusic: Boolean!
+  filterPhotos: Boolean!
+  filterTelevision: Boolean!
+  home: Boolean!
+  id: ID!
+  protected: Boolean!
+  recommendationsPlaylistId: String!
+  sharedServers: [PlexSharedServer!]!
+  thumb: String!
+  title: String!
+  username: String!
+}
+
 type Query {
+  account: PlexAccount!
+  movies: Movie!
   settings: Settings!
+  testPlex(data: PlexSettingsInput!): Boolean!
 }
 
 type Settings {
   id: Int!
   language: String!
   plex: [PlexSettings!]!
+  plexAccountToken: String!
   port: Int!
 }
 
 input SettingsInput {
   language: String
   plex: [PlexSettingsInput!]
+  plexAccountToken: String
   port: Float
+}
+
+input UpdateUserSharedServerInput {
+  allLibraries: Boolean!
+  librarySectionIds: [ID!]!
+  machineIdentifier: String!
+}
+
+input UpdateUserSharingInput {
+  """Plex User ID"""
+  id: ID!
+  servers: [UpdateUserSharedServerInput!]!
 }

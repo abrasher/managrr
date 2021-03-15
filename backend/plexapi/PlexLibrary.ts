@@ -1,6 +1,5 @@
 import { AxiosInstance, AxiosResponse } from 'axios'
 import { IPlexMedia, PlexMedia } from './PlexMedia'
-import { PlexServer } from './PlexServer'
 
 export type LibraryType = 'movie' | 'music' | 'photo' | 'show'
 interface LibraryPath {
@@ -8,7 +7,7 @@ interface LibraryPath {
 }
 
 export class PlexLibrary {
-  private constructor(api: AxiosInstance, private sections: PlexSection[]) {}
+  private constructor(api: AxiosInstance, public sections: PlexSection[]) {}
 
   static async build(api: AxiosInstance): Promise<PlexLibrary> {
     const res: LibraryResponse = await api.get('/library/sections')
@@ -35,7 +34,7 @@ export class PlexSection {
     public language: string,
     public uuid: string,
     public location: LibraryPath[],
-    private media: PlexMedia[]
+    public media: PlexMedia[]
   ) {}
 
   static async build(

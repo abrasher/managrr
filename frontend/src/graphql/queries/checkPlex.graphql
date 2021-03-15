@@ -1,0 +1,3 @@
+query checkPlex($data: PlexSettingsInput!) {
+  testPlex(data: $data)
+}

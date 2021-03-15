@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
-    "target": "es2018",
+    // "baseUrl": ".",
+    "target": "es2019",
+    "sourceMap": true,
     "module": "CommonJS",
     "strict": true,
     "moduleResolution": "node",
@@ -10,7 +12,7 @@
     "esModuleInterop": true,
     "noUnusedLocals": true,
     "noUnusedParameters": false,
-    "strictPropertyInitialization": false,
+    "strictPropertyInitialization": true,
     "lib": ["ES2018", "esnext.asynciterable"]
   },
   "include": ["*.ts", "**/*.ts"]

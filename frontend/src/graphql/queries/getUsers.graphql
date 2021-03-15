@@ -1,0 +1,26 @@
+query getUsers {
+  account {
+    servers {
+      id
+      clientIdentifier
+      name
+      libraries {
+        id
+        title
+        type
+      }
+    }
+    users {
+      id
+      title
+      sharedServers {
+        id
+        machineIdentifier
+        allLibraries
+        libraries {
+          id
+        }
+      }
+    }
+  }
+}

@@ -1,17 +1,14 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
 const main = async () => {
-  await prisma.settings.upsert({
-    where: {
+  await prisma.settings.create({
+    data: {
       id: 1,
-    },
-    update: {},
-    create: {
-      id: 1,
-      language: "english",
+      language: 'english',
+      plexAccountToken: 'token',
     },
   })
 }

@@ -1,47 +1,48 @@
 <template>
   <el-menu
-    default-active="2"
-    class="el-menu-vertical-demo"
+    id="menu"
+    router
+    :default-active="route.path"
     background-color="#545c64"
     text-color="#fff"
     active-text-color="#ffd04b"
   >
-    <el-submenu index="1">
-      <template #title>
-        <i class="el-icon-location"></i>
-        <span>Navigator One</span>
-      </template>
-      <el-menu-item-group title="Group One">
-        <el-menu-item index="1-1">item one</el-menu-item>
-        <el-menu-item index="1-2">item one</el-menu-item>
-      </el-menu-item-group>
-      <el-menu-item-group title="Group Two">
-        <el-menu-item index="1-3">item three</el-menu-item>
-      </el-menu-item-group>
-      <el-submenu index="1-4">
-        <template #title>item four</template>
-        <el-menu-item index="1-4-1">item one</el-menu-item>
-      </el-submenu>
-    </el-submenu>
-    <el-menu-item index="2">
+    <div class="logo">Managrr</div>
+    <el-menu-item index="/">
       <i class="el-icon-menu"></i>
-      <span>Navigator Two</span>
+      <span>Main</span>
     </el-menu-item>
-    <el-menu-item index="3" disabled>
+    <el-menu-item index="/permissions">
       <i class="el-icon-document"></i>
-      <span>Navigator Three</span>
+      <span>Permissions</span>
     </el-menu-item>
-    <el-menu-item index="4">
+    <el-menu-item index="/settings">
       <i class="el-icon-setting"></i>
-      <span>Navigator Four</span>
+      <span>Settings</span>
     </el-menu-item>
   </el-menu>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-
-export default defineComponent({
-  name: 'SideMenu',
-})
+<script setup lang="ts">
+import { useRoute } from 'vue-router'
+const route = useRoute()
 </script>
+
+<style>
+.logo {
+  color: #fff;
+  text-align: center;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  font-size: 24px;
+}
+#menu {
+  border-right: 0px;
+  height: 100%;
+  text-align: center;
+}
+#menu > .el-menu-item {
+  padding-right: 40px;
+  font-size: 16px;
+}
+</style>
