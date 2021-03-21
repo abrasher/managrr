@@ -1,173 +1,183 @@
+import { EntityManager, MikroORM } from '@mikro-orm/core'
+
+import { PlexMediaEntity } from '../entities/Plex/plexMedia.entity'
+import { PlexSectionEntity } from '../entities/Plex/plexSection.entity'
 import { log } from '../lib/logger'
+import mikroOrmConfig from '../mikro-orm.config'
 import { PlexServer } from '../plexapi'
-import { PlexLibrary, PlexSection } from '../plexapi/PlexLibrary'
 import { PlexMedia } from '../plexapi/PlexMedia'
-import { prisma } from '../prisma'
+import { PlexSection } from '../plexapi/PlexSection'
 
 const url = 'https://plex.brasher.ca'
 const token = 'WZYYVQg5TjrgSpP2f_J2'
 
-const main = async () => {
-  const plex = await PlexServer.build(url, token)
+const test = async () => {
+  const orm = await MikroORM.init(mikroOrmConfig)
 
-  const library = await plex.getLibrary()
+  const gen = orm.getSchemaGenerator()
 
-  await addLibrary(library)
+  await gen.dropSchema()
+  log.debug('Dropped')
+  await gen.createSchema()
+  log.debug('Created')
+
+  const importer = new PlexImporter(orm.em, url, token)
+
+  log.debug('Importing')
+
+  await importer.import()
 }
 
-const addLibrary = async (library: PlexLibrary) => {
-  const sections = library.sections
-
-  const sectionsToLink: number[] = []
-
-  // const media = await Promise.all(sections.map((section) => ))
-
-  await addSection(sections[0])
-  // for (const section of sections) {
-  //   const createdSection = await addSection(section)
-  //   // sectionsToLink.push(createdSection.)
-  // }
-}
-
-const addSection = async (section: PlexSection) => {
-  log.debug(`Importing Plex Library ${section.title} | ${section.uuid}`)
-
-  const sectionMedia = section.media
-
-  const mediaToLink: number[] = []
-
-  const numMedia = sectionMedia.length
-
-  const addedMedia = Promise.all(
-    sectionMedia.map(async (media) => {
-      console.log(`Adding ${media.title}`)
-      const result = await addMedia(media)
-      console.log(`Finished ${media.title}`)
-    })
-  )
-
-  // for (const [index, mediaItem] of sectionMedia.entries()) {
-  //   try {
-  //     log.debug(
-  //       `Importing Plex Media Item ${(index + 1)
-  //         .toString()
-  //         .padStart(numMedia.toString().length, '0')} / ${numMedia} ${
-  //         mediaItem.title
-  //       }`
-  //     )
-  //     const createdMedia = await addMedia(mediaItem)
-  //     mediaToLink.push(createdMedia.ratingKey)
-  //   } catch (error) {
-  //     log.error(error)
-  //     process.exit(1)
-  //   }
-  // }
-
-  // const {
-  //   agent,
-  //   allowSync,
-  //   key,
-  //   language,
-  //   refreshing,
-  //   scanner,
-  //   title,
-  //   type,
-  //   uuid,
-  // } = section
-
-  // return prisma.plexSection.upsert({
-  //   where: {
-  //     uuid: section.uuid,
-  //   },
-  //   create: {
-  //     agent,
-  //     allowSync,
-  //     key,
-  //     language,
-  //     refreshing,
-  //     scanner,
-  //     title,
-  //     type,
-  //     uuid,
-  //   },
-  //   update: {},
-  // })
-}
-
-const addMedia = async (media: PlexMedia) => {
-  const {
-    key,
-    studio,
-    type,
-    title,
-    ratingKey,
-    audienceRating,
-    contentRating,
-    duration,
-    rating,
-    summary,
-    tagline,
-    year,
-    media: mediaFiles,
-  } = media
-
-  const mediaFileMap = (operation: 'create' | 'update') =>
-    mediaFiles.map((file) => ({
-      id: file.id,
-      duration: file.duration,
-      bitrate: file.bitrate,
-      width: file.width,
-      height: file.height,
-      mediaPart: file.part
-        ? {
-            [operation]: file.part.map((part) => ({
-              id: part.id,
-              file: part.file,
-              size: part.size,
-              container: part.container,
-            })),
-          }
-        : undefined,
-    }))
-
-  return prisma.plexMedia.upsert({
-    where: {
-      ratingKey,
-    },
-    create: {
-      key,
-      studio,
-      type,
-      title,
-      ratingKey,
-      audienceRating,
-      contentRating,
-      duration,
-      rating,
-      summary,
-      tagline,
-      year,
-      mediaFiles: {
-        create: mediaFileMap('create'),
-      },
-    },
-    update: {
-      key,
-      studio,
-      type,
-      title,
-      audienceRating,
-      contentRating,
-      duration,
-      rating,
-      summary,
-      tagline,
-      year,
-      // mediaFiles: {
-      //   update: mediaFileMap('update'),
-      // },
-    },
+test()
+  .then(() => {
+    log.info('Import Complete')
+    process.exit(0)
   })
-}
+  .catch((err) => {
+    log.error(err)
+    process.exit(1)
+  })
 
-main().catch(console.error)
+class PlexImporter {
+  constructor(
+    private em: EntityManager,
+    private url: string,
+    private token: string
+  ) {}
+
+  async import() {
+    const plex = await PlexServer.build(this.url, this.token)
+    const library = await plex.getLibrary()
+
+    // const sectionPromises = library.sections.map(
+    //   async (section) => await this.importSection(section)
+    // )
+    // const sections = await Promise.all(sectionPromises)
+
+    for (const section of library.sections) {
+      const res = await this.importSection(section)
+      await this.em.persistAndFlush(res)
+    }
+  }
+
+  private async importSection(section: PlexSection) {
+    log.info(`Importing ${section.title}`)
+    const {
+      agent,
+      allowSync,
+      key,
+      language,
+      refreshing,
+      scanner,
+      title,
+      type,
+      uuid,
+    } = section
+
+    const mediaEntities = await Promise.all(
+      section.media.slice(0, 100).map((mediaItem) => this.addMedia(mediaItem))
+    )
+
+    const foundSection = await this.em.findOne(PlexSectionEntity, {
+      uuid: section.uuid,
+    })
+
+    if (foundSection) {
+      foundSection.assign(
+        {
+          agent,
+          allowSync,
+          key,
+          language,
+          refreshing,
+          scanner,
+          title,
+          type,
+          uuid,
+          media: mediaEntities,
+        },
+        {
+          mergeObjects: true,
+        }
+      )
+      return foundSection
+    }
+
+    const newSection = this.em.create(PlexSectionEntity, {
+      agent,
+      allowSync,
+      key,
+      language,
+      refreshing,
+      scanner,
+      title,
+      type,
+      uuid,
+      media: mediaEntities,
+    })
+    return newSection
+  }
+
+  private async addMedia(media: PlexMedia) {
+    const {
+      guid,
+      key,
+      studio,
+      type,
+      title,
+      ratingKey,
+      audienceRating,
+      contentRating,
+      duration,
+      rating,
+      summary,
+      tagline,
+      year,
+      media: mediaFiles,
+    } = media
+
+    const foundMedia = await this.em.findOne(PlexMediaEntity, { guid })
+    log.debug(mediaFiles)
+
+    if (foundMedia) {
+      foundMedia.assign(
+        {
+          key,
+          studio,
+          type,
+          title,
+          audienceRating,
+          contentRating,
+          duration,
+          rating,
+          summary,
+          tagline,
+          year,
+          mediaFiles,
+        },
+        {
+          mergeObjects: true,
+        }
+      )
+      return foundMedia
+    }
+
+    const newMovie = this.em.create(PlexMediaEntity, {
+      guid,
+      ratingKey,
+      key,
+      studio,
+      type,
+      title,
+      audienceRating,
+      contentRating,
+      duration,
+      rating,
+      summary,
+      tagline,
+      year,
+      mediaFiles,
+    })
+    return newMovie
+  }
+}

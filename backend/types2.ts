@@ -1,27 +1,6 @@
-import { BaseEntity, Collection, EntityManager } from '@mikro-orm/core'
-import { SqliteDriver } from '@mikro-orm/sqlite'
+import { BaseEntity, Collection } from '@mikro-orm/core'
 
-import { Movie } from './entities'
-
-export interface ContextType {
-  em: EntityManager<SqliteDriver>
-}
-
-type CollectionToArray<T> = T extends Collection<infer K> ? K[] : T
-
-/**
- * Resolves problem that MikroORM requires relationships to be defined as collections
- */
-export type ResolverType<T> = {
-  [P in keyof T]?: (
-    root: T,
-    ...args: unknown[]
-  ) => CollectionToArray<T[P]> | Promise<CollectionToArray<T[P]>>
-}
-
-export type TypeConvert<T> = {
-  [P in keyof T]?: CollectionToArray<T[P]>
-}
+import { ExpandRecursively } from './types'
 
 type Relation<T> = {
   [P in keyof T as T[P] extends
@@ -60,9 +39,3 @@ type RemoveRecursive<T> = {
 export type EntityData<T> = ExpandRecursively<
   Combine<RemoveBaseEntity<RemoveRecursive<Remove<T>>>>
 >
-
-export type ExpandRecursively<T> = T extends object
-  ? T extends infer O
-    ? { [K in keyof O]: ExpandRecursively<O[K]> }
-    : never
-  : T

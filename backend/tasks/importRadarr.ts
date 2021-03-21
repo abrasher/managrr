@@ -1,15 +1,4 @@
-import {
-  PrismaClient,
-  RadarrAlternateTitle,
-  RadarrMovie,
-  RadarrQualityProfile,
-  RadarrMovieFile,
-  RadarrTag,
-  RadarrMediaInfo,
-} from '@prisma/client'
-
 import axios from 'axios'
-import { RadarrLanguage } from '../entities/Radarr/RadarrLanguage'
 
 const prisma = new PrismaClient()
 

@@ -1,132 +1,99 @@
+import {
+  BaseEntity,
+  Collection,
+  Entity,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryKey,
+  Property,
+} from '@mikro-orm/core'
 import { Field, ObjectType } from 'type-graphql'
 
+import { PlexMediaEntity } from './Plex/plexMedia.entity'
+import { RadarrInstance } from './settings.entity'
+
+@Entity()
 @ObjectType()
-class AlternateTitle {
+export class Genre extends BaseEntity<Genre, 'id'> {
+  @PrimaryKey()
+  id!: number
+
+  @Property()
   @Field()
   name!: string
 
-  @Field()
-  language!: string
+  @ManyToMany(() => Movie, (movie) => movie.genres)
+  movies = new Collection<Movie>(this)
 }
 
+@Entity()
 @ObjectType()
-class Person {
-  id!: number
-
+export class Movie extends BaseEntity<Movie, 'id'> {
+  @PrimaryKey()
   @Field()
-  name!: string
+  id?: number
 
-  @Field()
-  age!: number
-}
-
-@ObjectType()
-export class Genre {
-  id!: number
-
-  @Field()
-  name!: string
-}
-
-@ObjectType()
-export class Movie {
-  @Field()
-  id!: number
-
+  @Property()
   @Field()
   title!: string
 
-  //@Field((type) => [AlternateTitle])
-  //alternateTitles?: AlternateTitle[]
-
+  @Property()
   @Field()
   year!: number
 
+  @Property()
   @Field()
   duration!: number
 
-  @Field()
-  studio!: string
+  @Property()
+  @Field({ nullable: true })
+  studio?: string
 
-  @Field()
-  contentRating!: string
+  @Property()
+  @Field({ nullable: true })
+  contentRating?: string
 
-  @Field((type) => [MovieFile])
-  files?: MovieFile[]
-
+  @ManyToMany(() => Genre)
   @Field((type) => [Genre])
-  genres!: Genre[]
+  genres = new Collection<Genre>(this)
 
-  @Field((type) => [PlexSection])
-  plexSections?: PlexSection[]
+  @OneToMany(() => PlexMediaEntity, (media) => media.movie)
+  @Field(() => [PlexMediaEntity])
+  plexMedia = new Collection<PlexMediaEntity>(this)
 
-  @Field((type) => [PlexCollection])
-  plexCollections?: PlexCollection[]
-
-  @Field()
-  totalFileSize!: number
+  @OneToMany(() => RadarrFile, (file) => file.movie)
+  @Field(() => [RadarrFile])
+  radarrs = new Collection<RadarrFile>(this)
 }
 
+@Entity()
 @ObjectType()
-export class PlexCollection {
+export class RadarrFile {
+  @PrimaryKey()
+  id!: number
+
+  @Field(() => RadarrInstance)
+  @ManyToOne(() => RadarrInstance)
+  instance!: RadarrInstance
+
+  @Property()
   @Field()
-  title!: string
+  monitored!: boolean
 
+  @Property()
   @Field()
-  summary!: string
+  hasFile!: boolean
 
-  @Field()
-  contentRating!: string
+  @Property()
+  tmdbId!: number
 
-  @Field()
-  poster!: string
+  @Property({ nullable: true })
+  imdbId?: string
 
-  @Field()
-  background!: string
-
-  @Field((type) => CollectionMode)
-  mode!: CollectionMode
-
-  @Field((type) => CollectionOrder)
-  order!: CollectionOrder
-}
-
-@ObjectType()
-export class MovieFile {
-  @Field()
-  radarrInstance!: string
-
-  @Field()
-  monitored!: string
-
-  @Field()
-  size?: number
-
-  @Field()
-  path!: string
-}
-
-@ObjectType()
-export class PlexMovie {
-  @Field()
-  libraryId!: number
-
-  @Field()
-  libraryName!: string
-}
-
-@ObjectType()
-class PlexSection {
-  @Field()
-  name!: string
-
-  @Field((type) => LibraryType)
-  type!: LibraryType
-}
-
-export enum LibraryType {
-  MOVIE = 'movie',
-  SHOW = 'show',
+  @ManyToOne()
+  movie!: Movie
 }
 
 export enum CollectionMode {

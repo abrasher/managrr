@@ -1,14 +1,15 @@
 import { Service } from 'typedi'
-import { BaseRepository } from './base.repository'
-import * as plexApi from '../plexapi'
-import { UpdateUserSharingInput } from '../resolvers/types/plexAccount.types'
-import { cache } from '../lib/cache'
+
 import {
   PlexAccount,
-  PlexUser,
   PlexDevice,
   PlexDeviceServer,
+  PlexUser,
 } from '../entities/plexAccount.entity'
+import { cache } from '../lib/cache'
+import * as plexApi from '../plexapi'
+import { UpdateUserSharingInput } from '../resolvers/types/plexAccount.types'
+import { BaseRepository } from './base.repository'
 import { SettingsRepository } from './settings.repository'
 
 @Service()

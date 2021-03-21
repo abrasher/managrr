@@ -1,24 +1,22 @@
 import 'reflect-metadata'
 
-import { PrismaClient } from '@prisma/client'
+import { EntityManager, MikroORM } from '@mikro-orm/core'
 import { ApolloServer } from 'apollo-server-express'
 import express from 'express'
 import { buildSchema, registerEnumType } from 'type-graphql'
-import { Container } from 'typedi'
 
 import {
   CollectionMode,
   CollectionOrder,
   LibraryType,
 } from './entities/movie.entity'
-import { prisma } from './prisma'
+import config from './mikro-orm.config'
 import { PlexAccountResolver, SettingsResolver } from './resolvers'
 import { MovieResolver } from './resolvers/movie.resolver'
-import { ContextType } from './types'
 
 async function bootstrap() {
   try {
-    Container.set(PrismaClient, prisma)
+    const orm = await MikroORM.init(config)
 
     registerEnumType(LibraryType, {
       name: 'PlexLibraryType',
@@ -34,7 +32,6 @@ async function bootstrap() {
 
     const schema = await buildSchema({
       resolvers: [SettingsResolver, PlexAccountResolver, MovieResolver],
-      container: Container,
       emitSchemaFile: true,
     })
 
@@ -42,9 +39,8 @@ async function bootstrap() {
 
     const server = new ApolloServer({
       schema,
-
-      context: (): ContextType => ({
-        prisma,
+      context: () => ({
+        em: orm.em.fork(),
       }),
     })
 

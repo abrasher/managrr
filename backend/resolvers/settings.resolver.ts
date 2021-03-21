@@ -1,38 +1,38 @@
-import {
-  Mutation,
-  Query,
-  Resolver,
-  Arg,
-  FieldResolver,
-  Root,
-  Ctx,
-  Int,
-} from 'type-graphql'
-import { Service } from 'typedi'
-import { PlexSettings, Settings } from '@generated/type-graphql'
-import { ContextType } from '../types'
-import { SettingsRepository } from '../repositories'
-import { PlexSettingsInput, SettingsInput } from './types/settings.type'
-import { PlexServer } from '../plexapi'
+import { FieldSelections, resolveSelections } from '@jenyus-org/graphql-utils'
+import { GraphQLResolveInfo } from 'graphql'
+import { Arg, Ctx, Info, Int, Mutation, Query, Resolver } from 'type-graphql'
 
-@Service()
+import { PlexSettings, Settings } from '../entities'
+import { PlexServer } from '../plexapi'
+import { ContextType } from '../types'
+import { PlexSettingsInput, SettingsInput } from './types/settings.type'
+
 @Resolver((of) => Settings)
 export class SettingsResolver {
-  constructor(private readonly settingsRepo: SettingsRepository) {}
-
   @Query((returns) => Settings)
-  async settings(): Promise<Settings> {
-    return await this.settingsRepo.findOrMake()
-  }
+  async settings(
+    @Ctx() ctx: ContextType,
+    @Info() info: GraphQLResolveInfo
+  ): Promise<Settings> {
+    const fieldSelections: FieldSelections[] = [
+      { field: 'settings', selections: ['*.'] },
+    ]
+    const relationSelections: FieldSelections[] = [
+      {
+        field: 'settings',
+        selections: ['**.**'],
+      },
+    ]
 
-  @FieldResolver((returns) => [PlexSettings])
-  async plex(
-    @Root() settings: Settings,
-    @Ctx() context: ContextType
-  ): Promise<PlexSettings[]> {
-    return await context.prisma.plexSettings.findMany({
-      where: { settingsId: settings.id },
-    })
+    const fields = resolveSelections(fieldSelections, info)
+    const populate = resolveSelections(relationSelections, info)
+
+    const res = await ctx.em.findOneOrFail(
+      Settings,
+      { id: 1 },
+      { populate, fields }
+    )
+    return res
   }
 
   @Mutation((returns) => Settings)

@@ -1,8 +1,8 @@
 export enum LibraryType {
-  movie = 'movie',
-  music = 'music',
-  photo = 'photo',
-  show = 'show',
+  MOVIE = 'movie',
+  MUSIC = 'music',
+  PHOTO = 'photo',
+  SHOW = 'show',
 }
 
 export interface IPlexAccount {
@@ -10,4 +10,8 @@ export interface IPlexAccount {
   uuid: string
   username: string
   email: string
+}
+
+export interface IPlexPath {
+  path: string
 }

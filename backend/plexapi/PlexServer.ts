@@ -1,16 +1,17 @@
 import { AxiosError, AxiosInstance, AxiosResponse } from 'axios'
-import { getPlex } from './common/axios'
 
+import { getPlex } from './common/axios'
 import { PlexLibrary } from './PlexLibrary'
 
 export class PlexServer {
+  private _library?: PlexLibrary
+
   private constructor(
     public api: AxiosInstance,
     public url: string,
     public token: string,
     public friendlyName: string,
-    public machineIdentifier: string,
-    public library?: PlexLibrary
+    public machineIdentifier: string
   ) {}
 
   /**
@@ -37,8 +38,12 @@ export class PlexServer {
     }
   }
 
-  getLibrary(): Promise<PlexLibrary> {
-    return PlexLibrary.build(this.api)
+  async getLibrary(): Promise<PlexLibrary> {
+    if (this._library) {
+      return this._library
+    }
+    this._library = await PlexLibrary.build(this.api)
+    return this._library
   }
 
   static isValid(api: AxiosInstance): Promise<boolean> {

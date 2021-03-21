@@ -5,5 +5,14 @@
     "source.fixAll": true
   },
   "typescript.tsdk": "node_modules/typescript/lib",
-  "npm.packageManager": "yarn"
+  "npm.packageManager": "yarn",
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "driver": "SQLite",
+      "name": "managrr",
+      "database": "./backend/managrr.db"
+    }
+  ],
+  "sqltools.useNodeRuntime": true
 }

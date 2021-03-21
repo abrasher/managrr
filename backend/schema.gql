@@ -34,34 +34,27 @@ type Genre {
 
 """Type of library (movie, show, photo, music)"""
 enum LibraryType {
-  movie
-  music
-  photo
-  show
+  MOVIE
+  MUSIC
+  PHOTO
+  SHOW
 }
 
 type Movie {
   contentRating: String!
   duration: Float!
-  files: [MovieFile!]!
   genres: [Genre!]!
   id: Float!
-  plexCollections: [PlexCollection!]!
-  plexSections: [PlexSection!]!
+  plexMedia: [PlexMediaEntity!]!
+  radarrs: [RadarrFile!]!
   studio: String!
   title: String!
   totalFileSize: Float!
   year: Float!
 }
 
-type MovieFile {
-  monitored: String!
-  path: String!
-  radarrInstance: String!
-  size: Float!
-}
-
 type Mutation {
+  addMovie: Movie!
   deletePlex(id: Int!): PlexSettings!
   inviteUsers(data: [UpdateUserSharingInput!]!): [PlexUser!]!
   updatePlex(data: PlexSettingsInput!): PlexSettings!
@@ -79,28 +72,6 @@ type PlexAccount {
   username: String!
   users: [PlexUser!]!
   uuid: String!
-}
-
-type PlexCollection {
-  background: String!
-  contentRating: String!
-  mode: PlexCollectionMode!
-  order: PlexCollectionOrder!
-  poster: String!
-  summary: String!
-  title: String!
-}
-
-enum PlexCollectionMode {
-  DEFAULT
-  HIDECOLLECTION
-  HIDEITEMS
-  SHOW
-}
-
-enum PlexCollectionOrder {
-  ALPHABETICAL
-  RELEASEDATE
 }
 
 type PlexDevice implements AbsPlexDevice {
@@ -153,16 +124,23 @@ enum PlexLibraryType {
   SHOW
 }
 
-type PlexSection {
-  name: String!
+type PlexMediaEntity {
+  guid: String!
+  ratingKey: Float!
+  section: PlexSectionEntity!
+}
+
+type PlexSectionEntity {
+  key: Float!
+  title: String!
   type: PlexLibraryType!
+  uuid: String!
 }
 
 type PlexSettings {
-  friendlyName: String!
-  id: Int!
+  """Server name set by the owner"""
+  friendlyName: String
   machineIdentifier: String!
-  settingsId: Int!
   token: String!
   url: String!
 }
@@ -226,17 +204,26 @@ type PlexUser {
 
 type Query {
   account: PlexAccount!
-  movies: Movie!
+  movies: [Movie!]!
   settings: Settings!
   testPlex(data: PlexSettingsInput!): Boolean!
 }
 
+type RadarrFile {
+  hasFile: Boolean!
+  instance: RadarrInstance!
+  monitored: Boolean!
+}
+
+type RadarrInstance {
+  apiKey: String!
+  instanceName: String!
+  url: String!
+}
+
 type Settings {
-  id: Int!
   language: String!
   plex: [PlexSettings!]!
-  plexAccountToken: String!
-  port: Int!
 }
 
 input SettingsInput {

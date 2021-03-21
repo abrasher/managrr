@@ -1,31 +1,37 @@
-import { GraphQLResolveInfo } from 'graphql'
-import { Info, Query, Resolver } from 'type-graphql'
-import { Service } from 'typedi'
+import { Ctx, FieldResolver, Mutation, Resolver, Root } from 'type-graphql'
 
 import { Movie } from '../entities/movie.entity'
-import { MovieRepository } from '../repositories/movie.repository'
+import { createBaseResolver } from '../lib/helpers'
+import { Columns, ContextType } from '../types'
 
-@Service()
+const MovieBaseResolver = createBaseResolver(Movie)
+
 @Resolver((of) => Movie)
-export class MovieResolver {
-  constructor(private movieRepo: MovieRepository) {}
+export class MovieResolver extends MovieBaseResolver {
+  @Mutation(() => Movie)
+  async addMovie(@Ctx() ctx: ContextType): Promise<Movie> {
+    const id = Math.floor(Math.random() * 10000)
 
-  @Query((returns) => Movie)
-  movies(@Info() info: GraphQLResolveInfo): Movie {
-    return {
-      cast: [],
-      contentRating: '2',
+    const movieData: Columns<Movie> = {
+      id,
+      contentRating: 'R',
       duration: 222,
-      genres: [],
-      id: 2,
-      producer: [],
-      studio: 'few',
-      title: 'a movie',
-      writers: [],
-      totalFileSize: 2,
-      files: [],
-      year: 2100,
-      plexCollections: [],
+      studio: 'A Studio',
+      title: 'The Movie ' + id.toString(),
+      year: 2009,
     }
+
+    const newMovie = ctx.em.create(Movie, movieData)
+
+    await ctx.em.persistAndFlush(newMovie)
+
+    return newMovie
+  }
+
+  @FieldResolver(() => Number)
+  async totalFileSize(@Root() root: Movie): Promise<number> {
+    const radarrs = await root.radarrs.loadItems()
+    const totalSize = radarrs.reduce((accum, value) => value.id + accum, 0)
+    return totalSize
   }
 }

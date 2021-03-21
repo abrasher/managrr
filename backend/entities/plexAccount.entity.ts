@@ -1,17 +1,17 @@
 import {
   Field,
+  ID,
   InterfaceType,
   ObjectType,
   registerEnumType,
-  ID,
 } from 'type-graphql'
+
 import type {
   IPlexAccount,
   IPlexSharedLibrary,
   IPlexSharedServer,
   IPlexUser,
 } from '../plexapi'
-
 import { LibraryType } from '../plexapi'
 import { IPlexDevice } from '../plexapi/PlexAccount'
 
