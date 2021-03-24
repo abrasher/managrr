@@ -1,47 +1,38 @@
-import {
-  BaseEntity,
-  Collection,
-  Entity,
-  ManyToOne,
-  OneToMany,
-  PrimaryKey,
-  Property,
-} from '@mikro-orm/core'
+import { BaseEntity, Collection, Entity, ManyToOne, OneToMany, PrimaryKey, Property, Unique } from '@mikro-orm/core'
 import { Field, ObjectType } from 'type-graphql'
 
 import { RadarrFile } from './movie.entity'
+import { PlexSectionEntity } from './Plex/plexSection.entity'
 
 @Entity()
 @ObjectType()
 export class Settings extends BaseEntity<Settings, 'id'> {
   @PrimaryKey()
-  id: number = 1
+  id?: number = 1
 
   @Property()
   @Field()
   language?: string = 'eng'
 
-  @OneToMany(() => PlexSettings, (plex) => plex.settings)
-  @Field((type) => [PlexSettings])
-  plex = new Collection<PlexSettings>(this)
-
-  @OneToMany(() => RadarrInstance, (radarr) => radarr.settings)
-  radarrInstances = new Collection<RadarrInstance>(this)
+  @Property({ nullable: true })
+  plexAccountToken!: string | null
 }
 
 @Entity()
 @ObjectType()
-export class PlexSettings extends BaseEntity<
-  PlexSettings,
-  'machineIdentifier'
-> {
+export class PlexInstance extends BaseEntity<PlexInstance, 'machineIdentifier'> {
   @PrimaryKey()
   @Field()
-  machineIdentifier!: string
+  id?: number
+
+  @Unique()
+  @Property()
+  @Field()
+  machineIdentifier?: string
 
   @Property()
-  @Field({ description: 'Server name set by the owner', nullable: true })
-  friendlyName!: string
+  @Field({ description: 'Server name set by the owner', nullable: false })
+  friendlyName?: string
 
   @Property()
   @Field()
@@ -51,8 +42,9 @@ export class PlexSettings extends BaseEntity<
   @Field()
   token!: string
 
-  @ManyToOne(() => Settings)
-  settings!: Settings
+  @OneToMany(() => PlexSectionEntity, (section) => section.server)
+  @Field(() => [PlexSectionEntity])
+  sections = new Collection<PlexSectionEntity>(this)
 }
 
 @Entity()
@@ -66,13 +58,11 @@ export class RadarrInstance extends BaseEntity<RadarrInstance, 'url'> {
   @Field()
   apiKey!: string
 
+  @Unique()
   @Property()
   @Field()
   instanceName!: string
 
   @OneToMany(() => RadarrFile, (radarr) => radarr.instance)
   files = new Collection<RadarrFile>(this)
-
-  @ManyToOne(() => Settings)
-  settings!: Settings
 }

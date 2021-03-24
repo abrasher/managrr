@@ -8,10 +8,12 @@ import {
   OneToOne,
   PrimaryKey,
   Property,
+  Unique,
 } from '@mikro-orm/core'
-import { Field, ObjectType } from 'type-graphql'
+import { Field, FieldResolver, ID, ObjectType, Root } from 'type-graphql'
 
 import { PlexMediaEntity } from './Plex/plexMedia.entity'
+import { RadarrQualityProfile } from './radarr.entity'
 import { RadarrInstance } from './settings.entity'
 
 @Entity()
@@ -32,7 +34,7 @@ export class Genre extends BaseEntity<Genre, 'id'> {
 @ObjectType()
 export class Movie extends BaseEntity<Movie, 'id'> {
   @PrimaryKey()
-  @Field()
+  @Field(() => ID)
   id?: number
 
   @Property()
@@ -40,8 +42,13 @@ export class Movie extends BaseEntity<Movie, 'id'> {
   title!: string
 
   @Property()
-  @Field()
+  @Field({ nullable: true })
   year!: number
+
+  @Unique()
+  @Property()
+  @Field()
+  tmdbId?: number
 
   @Property()
   @Field()
@@ -72,6 +79,7 @@ export class Movie extends BaseEntity<Movie, 'id'> {
 @ObjectType()
 export class RadarrFile {
   @PrimaryKey()
+  @Field(() => ID)
   id!: number
 
   @Field(() => RadarrInstance)
@@ -85,6 +93,25 @@ export class RadarrFile {
   @Property()
   @Field()
   hasFile!: boolean
+
+  @Property()
+  qualityProfileId!: number
+
+  @Field(() => RadarrQualityProfile)
+  qualityProfile(@Root() radarrFile: RadarrFile): RadarrQualityProfile {
+    this.instance.apiKey
+    return {
+      id: 1,
+      language: [
+        {
+          id: 1,
+          name: 'english',
+        },
+      ],
+      name: 'profile1',
+      upgradeAllowed: false,
+    }
+  }
 
   @Property()
   tmdbId!: number

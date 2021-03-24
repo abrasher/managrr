@@ -1,5 +1,22 @@
-import { Logger } from 'tslog'
+import 'winston-daily-rotate-file'
 
-const log = new Logger()
+import winston from 'winston'
 
-export { log }
+const logger = winston.createLogger({
+  transports: [
+    new winston.transports.Console({
+      level: process.env.NODE_ENV !== 'production' ? 'debug' : 'info',
+    }),
+    new winston.transports.DailyRotateFile({
+      filename: 'managrr.%DATE%.log',
+      datePattern: 'YYYY-MM-DD-HH',
+      zippedArchive: true,
+      maxSize: '5m',
+      maxFiles: '7d',
+      dirname: 'logs',
+      level: 'info',
+    }),
+  ],
+})
+
+export { logger }

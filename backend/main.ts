@@ -1,22 +1,30 @@
 import 'reflect-metadata'
 
-import { EntityManager, MikroORM } from '@mikro-orm/core'
+import { MikroORM } from '@mikro-orm/core'
+import { EntityManager } from '@mikro-orm/sqlite'
 import { ApolloServer } from 'apollo-server-express'
+import dotenv from 'dotenv'
 import express from 'express'
-import { buildSchema, registerEnumType } from 'type-graphql'
+import { buildSchema, registerEnumType, ResolverData } from 'type-graphql'
+import Container from 'typedi'
 
-import {
-  CollectionMode,
-  CollectionOrder,
-  LibraryType,
-} from './entities/movie.entity'
+import { CollectionMode, CollectionOrder } from './entities/movie.entity'
+import { Availablity } from './entities/radarr.entity'
 import config from './mikro-orm.config'
-import { PlexAccountResolver, SettingsResolver } from './resolvers'
-import { MovieResolver } from './resolvers/movie.resolver'
+import { LibraryType } from './plexapi'
+import { initImporter } from './tasks/importMovie'
+import { seedDatabase } from './tasks/seedDatabase'
+import { ContextType } from './types'
+
+dotenv.config()
 
 async function bootstrap() {
   try {
     const orm = await MikroORM.init(config)
+
+    initImporter(orm.em.fork() as EntityManager)
+
+    await seedDatabase(orm.em)
 
     registerEnumType(LibraryType, {
       name: 'PlexLibraryType',
@@ -30,18 +38,32 @@ async function bootstrap() {
       name: 'PlexCollectionOrder',
     })
 
+    registerEnumType(Availablity, {
+      name: 'RadarrAvailablity',
+    })
+
     const schema = await buildSchema({
-      resolvers: [SettingsResolver, PlexAccountResolver, MovieResolver],
+      resolvers: [__dirname + '/resolvers/*.resolver.ts'],
       emitSchemaFile: true,
+      container: ({ context }: ResolverData<ContextType>) => Container.of(context.requestId),
     })
 
     const app = express()
 
     const server = new ApolloServer({
       schema,
-      context: () => ({
-        em: orm.em.fork(),
-      }),
+      context: () => {
+        const requestId = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString()
+        const container = Container.of(requestId)
+        const context = {
+          requestId,
+          container,
+          em: orm.em.fork(),
+        }
+        container.set(EntityManager, orm.em.fork())
+        container.set('context', context)
+        return context
+      },
     })
 
     server.applyMiddleware({

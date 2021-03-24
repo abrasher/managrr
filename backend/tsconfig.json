@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    // "baseUrl": ".",
+    "baseUrl": ".",
     "target": "es2019",
     "sourceMap": true,
     "module": "CommonJS",
@@ -14,7 +14,11 @@
     "noUnusedParameters": false,
     "strictPropertyInitialization": true,
     "lib": ["ES2018", "esnext.asynciterable"],
-    "noErrorTruncation": true
+    "noErrorTruncation": true,
+    "paths": {
+      "@resolvers/*": ["./resolvers/*"],
+      "@services/*": ["./services/*"]
+    }
   },
   "include": ["*.ts", "**/*.ts"]
 }

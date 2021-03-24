@@ -20,5 +20,6 @@ module.exports = {
     // '@typescript-eslint/no-unsafe-member-access': 'off',
     'simple-import-sort/imports': 'error',
     'simple-import-sort/exports': 'error',
+    '@typescript-eslint/no-floating-promises': ['error', { ignoreVoid: true }],
   },
 }

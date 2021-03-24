@@ -1,4 +1,9 @@
 node_modules
 .vscode
 *.db
-backend/prisma/generated
+.env.local
+backend/logs
+backend/schema.gql
+docs
+*.local
+dist

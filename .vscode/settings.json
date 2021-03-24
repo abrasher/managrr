@@ -14,5 +14,8 @@
       "database": "./backend/managrr.db"
     }
   ],
-  "sqltools.useNodeRuntime": true
+  "sqltools.useNodeRuntime": true,
+  "favorites.resources": [
+    "backend/controllers"
+  ]
 }

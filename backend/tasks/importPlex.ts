@@ -8,9 +8,6 @@ import { PlexServer } from '../plexapi'
 import { PlexMedia } from '../plexapi/PlexMedia'
 import { PlexSection } from '../plexapi/PlexSection'
 
-const url = 'https://plex.brasher.ca'
-const token = 'WZYYVQg5TjrgSpP2f_J2'
-
 const test = async () => {
   const orm = await MikroORM.init(mikroOrmConfig)
 
@@ -39,11 +36,7 @@ test()
   })
 
 class PlexImporter {
-  constructor(
-    private em: EntityManager,
-    private url: string,
-    private token: string
-  ) {}
+  constructor(private em: EntityManager, private url: string, private token: string) {}
 
   async import() {
     const plex = await PlexServer.build(this.url, this.token)
@@ -62,21 +55,9 @@ class PlexImporter {
 
   private async importSection(section: PlexSection) {
     log.info(`Importing ${section.title}`)
-    const {
-      agent,
-      allowSync,
-      key,
-      language,
-      refreshing,
-      scanner,
-      title,
-      type,
-      uuid,
-    } = section
+    const { agent, allowSync, key, language, refreshing, scanner, title, type, uuid } = section
 
-    const mediaEntities = await Promise.all(
-      section.media.slice(0, 100).map((mediaItem) => this.addMedia(mediaItem))
-    )
+    const mediaEntities = await Promise.all(section.media.slice(0, 100).map((mediaItem) => this.addMedia(mediaItem)))
 
     const foundSection = await this.em.findOne(PlexSectionEntity, {
       uuid: section.uuid,

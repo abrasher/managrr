@@ -12,6 +12,7 @@
     "apollo-server-express": "^2.21.0",
     "axios": "^0.21.1",
     "class-validator": "^0.13.1",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "graphql": "^15.5.0",
     "graphql-fields": "^2.0.3",
@@ -19,9 +20,10 @@
     "node-cache": "^5.1.2",
     "pluralize": "^8.0.0",
     "reflect-metadata": "^0.1.13",
-    "tslog": "^3.1.2",
     "type-graphql": "^1.1.1",
     "typedi": "^0.10.0",
+    "winston": "^3.3.3",
+    "winston-daily-rotate-file": "^4.5.1",
     "xml2js": "^0.4.23"
   },
   "devDependencies": {
@@ -36,14 +38,17 @@
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-simple-import-sort": "^7.0.0",
     "ts-node-dev": "^1.1.6",
+    "tsconfig-paths": "^3.9.0",
     "typescript": "^4.2.2"
   },
   "scripts": {
-    "dev": "ts-node-dev --respawn --project ./tsconfig.json --transpile-only ./main.ts",
+    "dev": "ts-node-dev --respawn --project ./tsconfig.json --transpile-only -r tsconfig-paths/register ./main.ts",
     "gen": "prisma generate --watch",
     "migrate": "prisma migrate --preview-feature",
     "migrate:reset": "prisma migrate reset --preview-feature",
     "db:seed": "prisma db seed --preview-feature",
-    "db:push": "prisma db push --preview-feature"
+    "db:push": "prisma db push --preview-feature",
+    "db:clear": "mikro-orm schema:drop -r && mikro-orm schema:create -r",
+    "db:update": "mikro-orm schema:update -r"
   }
 }

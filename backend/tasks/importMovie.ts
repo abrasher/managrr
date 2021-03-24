@@ -1,145 +1,151 @@
-import { MikroORM } from '@mikro-orm/core'
 import { EntityManager } from '@mikro-orm/sqlite'
 import axios from 'axios'
 
 import { Movie, RadarrFile } from '../entities/movie.entity'
-import { PlexSettings, RadarrInstance } from '../entities/settings.entity'
+import { PlexInstance, RadarrInstance } from '../entities/settings.entity'
 import { log } from '../lib/logger'
-import mikroOrmConfig from '../mikro-orm.config'
 import { PlexServer } from '../plexapi/PlexServer'
 import { EntityData } from '../types'
 
-const main = async () => {
-  const orm = await MikroORM.init(mikroOrmConfig)
-
-  const importer = new MovieImporter(orm.em as EntityManager)
-
-  await orm.em.persistAndFlush([
-    orm.em.create(PlexSettings, {
-      url: 'https://plex.brasher.ca',
-      token: 'K13usJEFYXCB4oVtrXL-',
-      machineIdentifier: 'plex2',
-      friendlyName: 'Friendly',
-    }),
-    orm.em.create(RadarrInstance, {
-      url: 'https://radarr.brasher.ca',
-      apiKey: '91ce1fb5aebf49459838770d20f17151',
-      instanceName: 'radarr1080',
-    }),
-  ])
-
-  await importer.import('plex2')
+enum TASKSTATUS {
+  RUNNING = 'running',
+  NOT_STARTED = 'not_started',
+  ERROR = 'error',
+  FINISHED = 'finished',
 }
 
-main()
-  .catch((err) => console.error(err))
-  .finally(() => {
-    process.exit()
-  })
+export const initImporter = (em: EntityManager): MovieImporter => {
+  return new MovieImporter(em)
+}
+
+export const getMovieImporter = (): MovieImporter => {
+  return MovieImporter.getInstance()
+}
 
 class MovieImporter {
-  constructor(private em: EntityManager) {}
+  static _instance: MovieImporter
 
-  async import(plexMachineId: string) {
-    const { url, token } = await this.em.findOneOrFail(PlexSettings, {
-      machineIdentifier: plexMachineId,
-    })
+  status: TASKSTATUS
 
-    const radarrInstances = await this.em.find(RadarrInstance, {})
-    const radarrMap = await mapRadarr(radarrInstances)
+  constructor(private em: EntityManager) {
+    this.status = TASKSTATUS.NOT_STARTED
+    MovieImporter._instance = this
+  }
 
-    const plex = await PlexServer.build(url, token)
-    const plexLibrary = await plex.getLibrary()
+  static getInstance(): MovieImporter {
+    return this._instance
+  }
 
-    const movieSections = await Promise.all(
-      plexLibrary.sections
-        .filter((section) => section.type === 'movie')
-        .map(async (section) => ({
-          ...section,
-          media: await Promise.all(
-            section.media.slice(0, 50).map(async (item) => ({
-              ...item,
-              ids: await item.getIds(),
-            }))
-          ),
-        }))
-    )
+  async import(plexMachineId: string): Promise<void> {
+    this.status = TASKSTATUS.RUNNING
 
-    const movieMap = new Map<number, EntityData<Movie>>()
+    try {
+      const { url, token } = await this.em.findOneOrFail(PlexInstance, {
+        machineIdentifier: plexMachineId,
+      })
 
-    for (const section of movieSections) {
-      for (const movie of section.media) {
-        if (movie.ids.tmdbId) {
-          const movieVal = movieMap.get(movie.ids.tmdbId)
-          const plexMedia = movieVal?.plexMedia ?? []
-          const radarrFiles = radarrMap.get(movie.ids.tmdbId)
+      const radarrInstances = await this.em.find(RadarrInstance, {})
+      const radarrMap = await this.mapRadarr(radarrInstances)
 
-          const {
-            title,
-            studio,
-            contentRating,
-            year,
-            duration,
-            ratingKey,
-          } = movie
+      const plex = await PlexServer.build(url, token)
+      const plexLibrary = await plex.getLibrary()
 
-          movieMap.set(movie.ids.tmdbId, {
-            title,
-            studio,
-            contentRating,
-            year,
-            duration,
-            plexMedia: [
-              ...plexMedia,
-              {
-                ratingKey,
-                section: {
-                  key: section.key,
-                  title: section.title,
-                  type: section.type,
-                  uuid: section.uuid,
+      const movieSections = await Promise.all(
+        plexLibrary.sections
+          .filter((section) => section.type === 'movie')
+          .map(async (section) => ({
+            ...section,
+            media: await Promise.all(
+              section.media.slice(0, 50).map(async (item) => ({
+                ...item,
+                ids: await item.getIds(),
+              }))
+            ),
+          }))
+      )
+
+      const movieMap = new Map<number, EntityData<Movie>>()
+
+      for (const section of movieSections) {
+        for (const movie of section.media) {
+          if (movie.ids.tmdbId) {
+            const movieVal = movieMap.get(movie.ids.tmdbId)
+            const plexMedia = movieVal?.plexMedia ?? []
+            const radarrFiles = radarrMap.get(movie.ids.tmdbId)
+
+            const { title, studio, contentRating, year, duration, ratingKey, ids } = movie
+
+            movieMap.set(movie.ids.tmdbId, {
+              title,
+              studio,
+              contentRating,
+              year,
+              duration,
+              tmdbId: ids.tmdbId,
+              plexMedia: [
+                ...plexMedia,
+                {
+                  ratingKey,
+                  section: {
+                    key: section.key,
+                    title: section.title,
+                    type: section.type,
+                    uuid: section.uuid,
+                  },
                 },
-              },
-            ],
-            radarrs: radarrFiles,
-          })
+              ],
+              radarrs: [...(radarrFiles ?? [])],
+            })
+          }
         }
       }
+
+      for (const movie of movieMap.values()) {
+        const foundMovie = await this.em.findOne(Movie, { tmdbId: movie.tmdbId })
+
+        if (!foundMovie) {
+          const newMovie = this.em.create(Movie, movie)
+          this.em.persist(newMovie)
+        } else {
+          foundMovie.assign(movie, { merge: true })
+        }
+      }
+      await this.em.flush()
+      this.em.clear()
+      this.status = TASKSTATUS.FINISHED
+    } catch (err) {
+      this.status = TASKSTATUS.ERROR
+      log.error(err)
     }
-    for (const movie of movieMap.values()) {
-      const newMovie = this.em.create(Movie, movie)
-      this.em.persist(newMovie)
-    }
-    await this.em.flush()
   }
-}
 
-const mapRadarr = async (instances: Array<RadarrInstance>) => {
-  const mediaMap = new Map<number, Array<EntityData<RadarrFile>>>()
-  for (const instance of instances) {
-    const { url, apiKey } = instance
-    const res = await axios.get<RadarrData[]>(`${url}/api/v3/movie`, {
-      headers: {
-        'X-Api-Key': apiKey,
-      },
-    })
-
-    res.data.forEach((movie) => {
-      const mapValue = mediaMap.get(movie.tmdbId) ?? []
-
-      mediaMap.set(movie.tmdbId, [
-        ...mapValue,
-        {
-          id: movie.id,
-          monitored: movie.monitored,
-          hasFile: movie.hasFile,
-          tmdbId: Number(movie.tmdbId),
-          imdbId: movie.imdbId,
+  private async mapRadarr(instances: Array<RadarrInstance>) {
+    const mediaMap = new Map<number, Array<EntityData<RadarrFile>>>()
+    for (const instance of instances) {
+      const { url, apiKey } = instance
+      const res = await axios.get<RadarrData[]>(`${url}/api/v3/movie`, {
+        headers: {
+          'X-Api-Key': apiKey,
         },
-      ])
-    })
+      })
+
+      res.data.forEach((movie) => {
+        const mapValue = mediaMap.get(movie.tmdbId) ?? []
+
+        mediaMap.set(movie.tmdbId, [
+          ...mapValue,
+          {
+            id: movie.id,
+            monitored: movie.monitored,
+            hasFile: movie.hasFile,
+            tmdbId: Number(movie.tmdbId),
+            imdbId: movie.imdbId,
+          },
+        ])
+      })
+    }
+    return mediaMap
   }
-  return mediaMap
 }
 
 interface RadarrData {

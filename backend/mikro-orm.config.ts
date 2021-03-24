@@ -1,24 +1,15 @@
 import {
   Genre,
   Movie,
+  PlexInstance,
   PlexMediaEntity,
   PlexSectionEntity,
-  PlexSettings,
   RadarrFile,
   RadarrInstance,
   Settings,
 } from './entities'
 export default {
-  entities: [
-    Movie,
-    PlexMediaEntity,
-    PlexSectionEntity,
-    PlexSettings,
-    RadarrFile,
-    RadarrInstance,
-    Settings,
-    Genre,
-  ],
+  entities: [Movie, PlexMediaEntity, PlexSectionEntity, PlexInstance, RadarrFile, RadarrInstance, Settings, Genre],
   dbName: 'managrr.db',
   type: 'sqlite' as const,
 }

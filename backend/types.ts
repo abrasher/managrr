@@ -1,10 +1,21 @@
 import { BaseEntity, Collection, EntityManager } from '@mikro-orm/core'
 import { SqliteDriver } from '@mikro-orm/sqlite'
+import { ContainerInstance } from 'typedi'
 
-import { Movie } from './entities'
+import { Settings } from './entities'
 
 export interface ContextType {
   em: EntityManager<SqliteDriver>
+  requestId: string
+  container: ContainerInstance
+}
+
+export type EntityInput<T> = RemoveBaseEntity<Omit<T, keyof RelationsToArray<T>> & RelationsToArray<T>>
+
+type RelationsToArray<T> = {
+  [P in keyof T as T[P] extends Collection<infer K> | Record<string, any> ? P : never]?:
+    | CollectionToArray<T[P]>
+    | undefined
 }
 
 type CollectionToArray<T> = T extends Collection<infer K> ? K[] : T
@@ -13,10 +24,7 @@ type CollectionToArray<T> = T extends Collection<infer K> ? K[] : T
  * Resolves problem that MikroORM requires relationships to be defined as collections
  */
 export type ResolverType<T> = {
-  [P in keyof T]?: (
-    root: T,
-    ...args: unknown[]
-  ) => CollectionToArray<T[P]> | Promise<CollectionToArray<T[P]>>
+  [P in keyof T]?: (root: T, ...args: unknown[]) => CollectionToArray<T[P]> | Promise<CollectionToArray<T[P]>>
 }
 
 export type TypeConvert<T> = {
@@ -24,11 +32,7 @@ export type TypeConvert<T> = {
 }
 
 type Relation<T> = {
-  [P in keyof T as T[P] extends
-    | Array<unknown>
-    | Record<string | number | symbol, unknown>
-    ? P
-    : never]?: T[P]
+  [P in keyof T as T[P] extends Array<unknown> | Record<string | number | symbol, unknown> ? P : never]?: T[P]
 }
 
 type Combine<T> = Omit<T, keyof Relation<T>> & Relation<T>
@@ -57,9 +61,7 @@ type RemoveRecursive<T> = {
     : T[K]
 }
 
-export type EntityData<T> = ExpandRecursively<
-  Combine<RemoveBaseEntity<RemoveRecursive<Remove<T>>>>
->
+export type EntityData<T> = Combine<RemoveBaseEntity<RemoveRecursive<Remove<T>>>>
 
 export type ExpandRecursively<T> = T extends object
   ? T extends infer O
