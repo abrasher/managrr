@@ -58,7 +58,7 @@ export class MovieResolver extends MovieBaseResolver {
 
     const test = new RadarrAPI(url, apiKey)
 
-    await test.addMovie()
+    await test.addMovie({ ...input, tmdbId: input.movieId })
     // const movie = await ctx.em.findOneOrFail(Movie, { tmdbId: input.movieId })
 
     // const result = await this.radarrService.addMovie(input)
