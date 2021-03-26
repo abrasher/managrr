@@ -1,22 +1,23 @@
-import 'winston-daily-rotate-file'
+import { appendFileSync } from 'node:fs'
+import { ILogObject, Logger } from 'tslog'
 
-import winston from 'winston'
+const logToFile = (logObject: ILogObject) => {
+  appendFileSync('log.txt', JSON.stringify(logObject) + '\n')
+}
 
-const logger = winston.createLogger({
-  transports: [
-    new winston.transports.Console({
-      level: process.env.NODE_ENV !== 'production' ? 'debug' : 'info',
-    }),
-    new winston.transports.DailyRotateFile({
-      filename: 'managrr.%DATE%.log',
-      datePattern: 'YYYY-MM-DD-HH',
-      zippedArchive: true,
-      maxSize: '5m',
-      maxFiles: '7d',
-      dirname: 'logs',
-      level: 'info',
-    }),
-  ],
-})
+const logger = new Logger()
+
+logger.attachTransport(
+  {
+    debug: logToFile,
+    error: logToFile,
+    fatal: logToFile,
+    info: logToFile,
+    silly: logToFile,
+    trace: logToFile,
+    warn: logToFile,
+  },
+  'warn'
+)
 
 export { logger }

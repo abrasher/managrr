@@ -2,6 +2,7 @@ import { Field, ID, InputType } from 'type-graphql'
 
 import { RadarrFile } from '../../entities/movie.entity'
 import { Availablity } from '../../entities/radarr.entity'
+import { AddRadarrPayload } from '../../interfaces/radarr'
 
 @InputType()
 export class UpdateMovieInput {

@@ -15,3 +15,19 @@ export interface RadarrMovie {
   tmdbId: number
   images: Record<string, unknown>
 }
+
+export interface UpdateRadarrPayload extends RadarrPayloadOptions {
+  id: number
+}
+
+export interface AddRadarrPayload extends RadarrPayloadOptions {
+  tmdbId: number
+  search?: boolean
+}
+
+interface RadarrPayloadOptions {
+  monitored?: boolean
+  qualityProfileId?: number
+  tags?: number[]
+  minimumAvailablity?: Availablity
+}
