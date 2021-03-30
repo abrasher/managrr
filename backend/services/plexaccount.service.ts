@@ -5,7 +5,7 @@ import { PlexAccount } from '../entities'
 import { PlexDevice, PlexDeviceServer, PlexUser } from '../entities/plexAccount.entity'
 import { Settings } from '../entities/settings.entity'
 import { cache } from '../lib/cache'
-import * as plexApi from '../plexapi'
+import * as plexApi from '../modules/plexapi'
 import { UpdateUserSharingInput } from '../resolvers/types/plexAccount.types'
 
 /**
@@ -16,7 +16,7 @@ export class PlexAccountService {
   constructor(private em: EntityManager) {}
 
   async getToken(): Promise<string> {
-    const settings = await this.em.findOneOrFail(Settings, { id: 1 })
+    const settings = await this.em.findOneOrFail(Settings, { id: 'main' })
 
     if (settings.plexAccountToken === null) {
       throw new Error('Plex Account Token is not defined')

@@ -2,11 +2,20 @@ import { EntityManager } from '@mikro-orm/core'
 
 import { PlexInstance, Settings } from '../entities'
 import { RadarrInstance } from '../entities/settings.entity'
+import { User } from '../entities/user.entity'
 
 export const seedDatabase = async (em: EntityManager): Promise<void> => {
   const settings = await em.findOne(Settings, { id: 1 })
   const plexInstances = await em.find(PlexInstance, {})
   const radarrInstances = await em.find(RadarrInstance, {})
+
+  const userRepo = em.getRepository(User)
+
+  const newUser = userRepo.create({
+    name: Math.random(),
+  })
+
+  em.persist(newUser)
 
   const defaultPlex = {
     url: process.env.PLEXURL,

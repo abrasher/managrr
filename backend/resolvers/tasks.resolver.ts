@@ -1,7 +1,7 @@
 import { Arg, Query, Resolver } from 'type-graphql'
 import { Service } from 'typedi'
 
-import { getMovieImporter } from '../tasks/importMovie'
+import { getMovieImporter } from '../tasks/MovieImporter'
 
 @Service()
 @Resolver()

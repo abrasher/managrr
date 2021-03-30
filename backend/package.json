@@ -8,6 +8,8 @@
     "@jenyus-org/graphql-utils": "^1.4.2",
     "@mikro-orm/core": "^4.4.4",
     "@mikro-orm/sqlite": "^4.4.4",
+    "@types/graphql-relay": "^0.6.0",
+    "@types/uuid": "^8.3.0",
     "apollo-server-express": "^2.21.0",
     "axios": "^0.21.1",
     "class-validator": "^0.13.1",
@@ -15,6 +17,7 @@
     "express": "^4.17.1",
     "graphql": "^15.5.0",
     "graphql-fields": "^2.0.3",
+    "graphql-relay": "^0.6.0",
     "lodash": "^4.17.21",
     "node-cache": "^5.1.2",
     "pluralize": "^8.0.0",
@@ -22,6 +25,7 @@
     "tslog": "^3.1.2",
     "type-graphql": "^1.1.1",
     "typedi": "^0.10.0",
+    "uuid": "^8.3.2",
     "winston": "^3.3.3",
     "winston-daily-rotate-file": "^4.5.1",
     "xml2js": "^0.4.23"
@@ -42,12 +46,9 @@
     "typescript": "^4.2.2"
   },
   "scripts": {
-    "dev": "ts-node-dev --respawn --project ./tsconfig.json --transpile-only -r tsconfig-paths/register ./main.ts",
-    "gen": "prisma generate --watch",
-    "migrate": "prisma migrate --preview-feature",
-    "migrate:reset": "prisma migrate reset --preview-feature",
-    "db:seed": "prisma db seed --preview-feature",
-    "db:push": "prisma db push --preview-feature",
+    "open": "open http://localhost:4000/graphql",
+    "dev": "yarn open && yarn develop",
+    "develop": "ts-node-dev --watch --respawn --clear --project ./tsconfig.json --transpile-only -r tsconfig-paths/register ./main.ts",
     "db:clear": "mikro-orm schema:drop -r && mikro-orm schema:create -r",
     "db:update": "mikro-orm schema:update -r"
   }

@@ -3,7 +3,7 @@ import axios from 'axios'
 import { Service } from 'typedi'
 
 import { RadarrInstance } from '../entities'
-import { RadarrMovie } from '../interfaces/radarr'
+import { RadarrMovie } from '../modules/radarr/radarr'
 import { AddMovieToRadarrInput } from '../resolvers/types/movie.types'
 
 @Service()

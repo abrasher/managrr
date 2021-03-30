@@ -1,4 +1,4 @@
-import { Availablity } from '../entities/radarr.entity'
+import { Availablity } from '../../entities/radarr.entity'
 export interface RadarrMovie {
   id: number
   title: string
@@ -14,6 +14,12 @@ export interface RadarrMovie {
   imdbId: string
   tmdbId: number
   images: Record<string, unknown>
+}
+
+export interface DeleteRadarrPayload {
+  id: number
+  addImportExclusion?: boolean
+  deleteFiles?: boolean
 }
 
 export interface UpdateRadarrPayload extends RadarrPayloadOptions {

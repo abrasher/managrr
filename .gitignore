@@ -7,3 +7,5 @@ backend/schema.gql
 docs
 *.local
 dist
+.env
+.stignore

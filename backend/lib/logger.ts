@@ -1,4 +1,4 @@
-import { appendFileSync } from 'node:fs'
+import { appendFileSync } from 'fs'
 import { ILogObject, Logger } from 'tslog'
 
 const logToFile = (logObject: ILogObject) => {

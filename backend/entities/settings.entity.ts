@@ -1,14 +1,16 @@
-import { BaseEntity, Collection, Entity, ManyToOne, OneToMany, PrimaryKey, Property, Unique } from '@mikro-orm/core'
+import { Collection, Entity, ManyToOne, OneToMany, PrimaryKey, Property, Unique } from '@mikro-orm/core'
 import { Field, ObjectType } from 'type-graphql'
 
 import { RadarrFile } from './movie.entity'
+import { Node } from './node.entity'
 import { PlexSectionEntity } from './Plex/plexSection.entity'
+import { User } from './user.entity'
 
 @Entity()
 @ObjectType()
-export class Settings extends BaseEntity<Settings, 'id'> {
+export class Settings extends Node<Settings> {
   @PrimaryKey()
-  id?: number = 1
+  id: string = 'main'
 
   @Property()
   @Field()
@@ -19,12 +21,8 @@ export class Settings extends BaseEntity<Settings, 'id'> {
 }
 
 @Entity()
-@ObjectType()
-export class PlexInstance extends BaseEntity<PlexInstance, 'machineIdentifier'> {
-  @PrimaryKey()
-  @Field()
-  id?: number
-
+@ObjectType({ implements: Node })
+export class PlexInstance extends Node<PlexInstance> {
   @Unique()
   @Property()
   @Field()
@@ -45,12 +43,14 @@ export class PlexInstance extends BaseEntity<PlexInstance, 'machineIdentifier'> 
   @OneToMany(() => PlexSectionEntity, (section) => section.server)
   @Field(() => [PlexSectionEntity])
   sections = new Collection<PlexSectionEntity>(this)
+
+  @ManyToOne(() => User)
+  user!: User
 }
 
 @Entity()
-@ObjectType()
-export class RadarrInstance extends BaseEntity<RadarrInstance, 'url'> {
-  @PrimaryKey()
+@ObjectType({ implements: Node })
+export class RadarrInstance extends Node<RadarrInstance> {
   @Field()
   url!: string
 
@@ -65,4 +65,7 @@ export class RadarrInstance extends BaseEntity<RadarrInstance, 'url'> {
 
   @OneToMany(() => RadarrFile, (radarr) => radarr.instance)
   files = new Collection<RadarrFile>(this)
+
+  @ManyToOne(() => User)
+  user!: User
 }
