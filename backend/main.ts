@@ -11,8 +11,8 @@ import Container from 'typedi'
 import { CollectionMode, CollectionOrder } from './entities/movie.entity'
 import { Availablity } from './entities/radarr.entity'
 import config from './mikro-orm.config'
-import { LibraryType } from './plexapi'
-import { initImporter } from './tasks/importMovie'
+import { LibraryType } from './modules/plexapi'
+import { initImporter } from './tasks/MovieImporter'
 import { seedDatabase } from './tasks/seedDatabase'
 import { ContextType } from './types'
 
@@ -74,8 +74,11 @@ async function bootstrap() {
       },
     })
 
-    app.listen({ port: 4000 }, () => {
-      console.log(`Server is listening at ${server.graphqlPath}`)
+    const port = process.env.PORT ?? 4000
+
+    app.listen({ port }, () => {
+      const url = `http://localhost:${port}${server.graphqlPath}`
+      console.log(`Server is listening at ${url}`)
     })
   } catch (err) {
     console.error(err)

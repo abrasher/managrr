@@ -1,15 +1,15 @@
-import { BaseEntity, Collection, Entity, Enum, ManyToOne, PrimaryKey, Property } from '@mikro-orm/core'
+import { Collection, Entity, Enum, ManyToOne, Property } from '@mikro-orm/core'
 import { OneToMany } from '@mikro-orm/core'
 import { Field, ObjectType } from 'type-graphql'
 
-import { LibraryType } from '../../plexapi/types'
+import { LibraryType } from '../../modules/plexapi/types'
+import { Node } from '../node.entity'
 import { PlexInstance } from '../settings.entity'
 import { PlexMediaEntity } from './plexMedia.entity'
 
 @Entity()
-@ObjectType('PlexSection')
-export class PlexSectionEntity extends BaseEntity<PlexSectionEntity, 'uuid'> {
-  @PrimaryKey()
+@ObjectType('PlexSection', { implements: Node })
+export class PlexSectionEntity extends Node<PlexSectionEntity> {
   @Field()
   uuid!: string
 

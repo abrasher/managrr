@@ -1,27 +1,14 @@
-import {
-  BaseEntity,
-  Collection,
-  Entity,
-  ManyToMany,
-  ManyToOne,
-  OneToMany,
-  OneToOne,
-  PrimaryKey,
-  Property,
-  Unique,
-} from '@mikro-orm/core'
-import { Field, FieldResolver, ID, ObjectType, Root } from 'type-graphql'
+import { Collection, Entity, ManyToMany, ManyToOne, OneToMany, Property, Unique } from '@mikro-orm/core'
+import { Node } from 'entities'
+import { Field, ObjectType, Root } from 'type-graphql'
 
 import { PlexMediaEntity } from './Plex/plexMedia.entity'
 import { RadarrQualityProfile } from './radarr.entity'
 import { RadarrInstance } from './settings.entity'
 
 @Entity()
-@ObjectType()
-export class Genre extends BaseEntity<Genre, 'id'> {
-  @PrimaryKey()
-  id!: number
-
+@ObjectType({ implements: Node })
+export class Genre extends Node<Genre> {
   @Property()
   @Field()
   name!: string
@@ -31,12 +18,8 @@ export class Genre extends BaseEntity<Genre, 'id'> {
 }
 
 @Entity()
-@ObjectType()
-export class Movie extends BaseEntity<Movie, 'id'> {
-  @PrimaryKey()
-  @Field(() => ID)
-  id?: number
-
+@ObjectType({ implements: Node })
+export class Movie extends Node<Movie> {
   @Property()
   @Field()
   title!: string
@@ -76,12 +59,8 @@ export class Movie extends BaseEntity<Movie, 'id'> {
 }
 
 @Entity()
-@ObjectType()
-export class RadarrFile {
-  @PrimaryKey()
-  @Field(() => ID)
-  id!: number
-
+@ObjectType({ implements: Node })
+export class RadarrFile extends Node<RadarrFile> {
   @Field(() => RadarrInstance)
   @ManyToOne(() => RadarrInstance)
   instance!: RadarrInstance

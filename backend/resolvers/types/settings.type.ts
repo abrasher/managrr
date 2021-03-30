@@ -1,24 +1,10 @@
 import { IsUrl } from 'class-validator'
 import { Field, ID, InputType } from 'type-graphql'
 
-import { PlexInstance, RadarrInstance, Settings } from '../../entities'
-import { EntityInput } from '../../types'
+import { BaseInput } from './base.type'
 
 @InputType()
-export class RadarrSettingsInput implements EntityInput<RadarrInstance> {
-  @IsUrl()
-  @Field()
-  url!: string
-
-  @Field()
-  apiKey!: string
-
-  @Field()
-  instanceName!: string
-}
-
-@InputType()
-export class AddPlexInstanceInput implements EntityInput<PlexInstance> {
+export class AddPlexInstanceInput {
   @IsUrl()
   @Field({
     description: 'URL of the Plex Server',
@@ -32,9 +18,9 @@ export class AddPlexInstanceInput implements EntityInput<PlexInstance> {
 }
 
 @InputType()
-export class UpdatePlexInstanceInput {
+export class UpdatePlexInstanceInput extends BaseInput {
   @Field((type) => ID)
-  id!: number
+  id!: string
 
   @Field()
   url!: string
@@ -44,13 +30,7 @@ export class UpdatePlexInstanceInput {
 }
 
 @InputType()
-export class RemoveRadarrInstanceInput {
-  @Field((type) => ID)
-  id!: number
-}
-
-@InputType()
-export class UpdateSettingsInput implements Omit<EntityInput<Settings>, 'id'> {
+export class UpdateSettingsInput extends BaseInput {
   @Field({ nullable: true })
   port?: number
 
@@ -62,7 +42,7 @@ export class UpdateSettingsInput implements Omit<EntityInput<Settings>, 'id'> {
 }
 
 @InputType()
-export class AddRadarrInstanceInput implements EntityInput<RadarrInstance> {
+export class AddRadarrInstanceInput {
   @Field()
   url!: string
 
@@ -74,7 +54,7 @@ export class AddRadarrInstanceInput implements EntityInput<RadarrInstance> {
 }
 
 @InputType()
-export class UpdateRadarrInstanceInput implements EntityInput<RadarrInstance> {
+export class UpdateRadarrInstanceInput extends BaseInput {
   @Field()
   url!: string
 
@@ -83,10 +63,4 @@ export class UpdateRadarrInstanceInput implements EntityInput<RadarrInstance> {
 
   @Field()
   instanceName!: string
-}
-
-@InputType()
-export class DeleteRadarrInstanceInput {
-  @Field()
-  url!: string
 }

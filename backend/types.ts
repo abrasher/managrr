@@ -2,8 +2,6 @@ import { BaseEntity, Collection, EntityManager } from '@mikro-orm/core'
 import { SqliteDriver } from '@mikro-orm/sqlite'
 import { ContainerInstance } from 'typedi'
 
-import { Settings } from './entities'
-
 export interface ContextType {
   em: EntityManager<SqliteDriver>
   requestId: string
@@ -63,7 +61,7 @@ type RemoveRecursive<T> = {
 
 export type EntityData<T> = Combine<RemoveBaseEntity<RemoveRecursive<Remove<T>>>>
 
-export type ExpandRecursively<T> = T extends object
+export type ExpandRecursively<T> = T extends Record<string | number | symbol, unknown>
   ? T extends infer O
     ? { [K in keyof O]: ExpandRecursively<O[K]> }
     : never

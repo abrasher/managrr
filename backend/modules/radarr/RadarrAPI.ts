@@ -1,12 +1,8 @@
-import { EntityManager } from '@mikro-orm/sqlite'
 import { AxiosInstance } from 'axios'
 import axios from 'axios'
-import { Service } from 'typedi'
 
-import { RadarrInstance } from '../entities'
-import { AddRadarrPayload, RadarrMovie, UpdateRadarrPayload } from '../interfaces/radarr'
-import { AddMovieToRadarrInput } from '../resolvers/types/movie.types'
-import { logger } from './logger'
+import { logger } from '../../lib/logger'
+import { AddRadarrPayload, DeleteRadarrPayload, RadarrMovie, UpdateRadarrPayload } from './radarr.interface'
 
 export class RadarrAPI {
   api: AxiosInstance
@@ -20,14 +16,9 @@ export class RadarrAPI {
     })
   }
 
-  async addMovie({
-    tmdbId,
-    minimumAvailablity,
-    monitored,
-    qualityProfileId,
-    tags,
-    search = false,
-  }: AddRadarrPayload): Promise<RadarrMovie | null> {
+  async addMovie(input: AddRadarrPayload): Promise<RadarrMovie | null> {
+    const { tmdbId, minimumAvailablity, monitored, qualityProfileId, tags, search = false } = input
+
     logger.info(`Radarr API: Adding Movie`)
 
     const lookupRes = await this.api.get<RadarrMovie[]>('/movie/lookup', {
@@ -72,6 +63,17 @@ export class RadarrAPI {
     return res.data
   }
 
+  async removeMovie(input: DeleteRadarrPayload): Promise<void> {
+    const { id, addImportExclusion = false, deleteFiles = false } = input
+
+    await this.api.delete(`/movie/${id}`, {
+      params: {
+        addImportExclusion,
+        deleteFiles,
+      },
+    })
+  }
+
   /**
    * Tell Radarr to Search Movies
    * @param movieIds Array of Movie IDs To Search For
@@ -82,33 +84,4 @@ export class RadarrAPI {
       movieIds,
     })
   }
-
-  // async addMovie(input: AddMovieToRadarrInput): Promise<RadarrMovie> {
-  //   const api = await this.api(input.radarrUrl)
-
-  //
-
-  //   const { title, year, tmdbId, images } = lookupResults.data[0]
-
-  //   const { monitored, qualityProfileId, search } = input
-
-  //   const payload = {
-  //     title,
-  //     year,
-  //     tmdbId,
-  //     monitored,
-  //     qualityProfileId,
-  //     images,
-  //     rootFolderPath: '/storage/media/movies',
-  //     addOptions: {
-  //       searchForMovie: search,
-  //     },
-  //   }
-
-  //   console.log(payload)
-
-  //   const result = await api.post<RadarrMovie>('/movie', payload)
-
-  //   return result.data
-  // }
 }
