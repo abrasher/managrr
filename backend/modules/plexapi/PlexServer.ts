@@ -21,21 +21,24 @@ export class PlexServer {
    * @param initialize whether or not to preload all data (default is false)
    */
   static async build(baseURL: string, token: string): Promise<PlexServer> {
-    try {
-      const api = getPlex(baseURL, token)
-      const res: RPlexServer = await api.get('/')
-      const { friendlyName, machineIdentifier } = res.data.mediaContainer
-
-      return new PlexServer(
-        api,
-        baseURL,
-        token,
-        friendlyName,
-        machineIdentifier
-      )
-    } catch (err) {
-      throw new Error('Unable to connect to plex server')
+    const api = getPlex(baseURL, token)
+    const res: RPlexServer = await api.get('/').catch((error: AxiosError) => {
+      console.log(error)
+      if (error.response?.status === 401) {
+        throw new Error(`Plex Error: Unauthorized, is your token correct?`)
+      } else if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+        throw new Error(`Plex Error: Server not found, is your URL correct?`)
+      } else {
+        throw new Error(`Plex Error: Unknown ${error.message}`)
+      }
+    })
+    if (res.data.mediaContainer === undefined) {
+      throw new Error(`Plex Error: Couldn't parse response, is the URL correct?`)
     }
+
+    const { friendlyName, machineIdentifier } = res.data.mediaContainer
+
+    return new PlexServer(api, baseURL, token, friendlyName, machineIdentifier)
   }
 
   async getLibrary(): Promise<PlexLibrary> {
@@ -44,38 +47,6 @@ export class PlexServer {
     }
     this._library = await PlexLibrary.build(this.api)
     return this._library
-  }
-
-  static isValid(api: AxiosInstance): Promise<boolean> {
-    return api
-      .get('/')
-      .then((resp) => {
-        return true
-      })
-      .catch((err) => {
-        return false
-      })
-  }
-  static testConnection(baseURL: string, token: string): Promise<boolean> {
-    const api = getPlex(baseURL, token)
-
-    return api
-      .get('/')
-      .then((resp) => {
-        return true
-      })
-      .catch((err: AxiosError) => {
-        switch (err.code) {
-          case 'ENOTFOUND':
-            console.error('ERROR: Unable to connect to address')
-            break
-
-          default:
-            console.error('ERROR: Invalid Plex Token')
-            break
-        }
-        return false
-      })
   }
 }
 

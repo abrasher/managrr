@@ -10,10 +10,19 @@ import { PlexInstance, RadarrInstance } from './settings.entity'
 export class User extends Node<User> {
   @Property()
   @Field()
-  name!: string
+  username!: string
+
+  @Property()
+  password!: string
+
+  @Property({ nullable: true })
+  accessToken!: string | null
+
+  @Property({ nullable: true })
+  refreshToken!: string | null
 
   @OneToOne(() => Settings)
-  @Field()
+  @Field(() => Settings)
   settings!: Settings
 
   @OneToMany(() => PlexInstance, (instance) => instance.user)

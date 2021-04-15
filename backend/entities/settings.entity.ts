@@ -1,13 +1,26 @@
-import { Collection, Entity, ManyToOne, OneToMany, PrimaryKey, Property, Unique } from '@mikro-orm/core'
+import {
+  BeforeCreate,
+  BeforeUpdate,
+  Collection,
+  Entity,
+  EventArgs,
+  ManyToOne,
+  OneToMany,
+  PrimaryKey,
+  Property,
+  Unique,
+} from '@mikro-orm/core'
+import { PlexServer } from 'modules/plexapi'
 import { Field, ObjectType } from 'type-graphql'
 
+import { RadarrAPI } from '../modules/radarr/RadarrAPI'
 import { RadarrFile } from './movie.entity'
 import { Node } from './node.entity'
 import { PlexSectionEntity } from './Plex/plexSection.entity'
 import { User } from './user.entity'
 
 @Entity()
-@ObjectType()
+@ObjectType({ implements: Node })
 export class Settings extends Node<Settings> {
   @PrimaryKey()
   id: string = 'main'
@@ -16,8 +29,9 @@ export class Settings extends Node<Settings> {
   @Field()
   language?: string = 'eng'
 
+  @Field({ nullable: true })
   @Property({ nullable: true })
-  plexAccountToken!: string | null
+  plexAccountToken!: string
 }
 
 @Entity()
@@ -46,11 +60,21 @@ export class PlexInstance extends Node<PlexInstance> {
 
   @ManyToOne(() => User)
   user!: User
+
+  @BeforeCreate()
+  @BeforeUpdate()
+  async before({ entity }: EventArgs<PlexInstance>): Promise<void> {
+    const { friendlyName, machineIdentifier } = await PlexServer.build(entity.url, entity.token)
+    entity.friendlyName = friendlyName
+    entity.machineIdentifier = machineIdentifier
+  }
 }
 
 @Entity()
 @ObjectType({ implements: Node })
 export class RadarrInstance extends Node<RadarrInstance> {
+  @Unique()
+  @Property()
   @Field()
   url!: string
 
@@ -58,7 +82,6 @@ export class RadarrInstance extends Node<RadarrInstance> {
   @Field()
   apiKey!: string
 
-  @Unique()
   @Property()
   @Field()
   instanceName!: string
@@ -68,4 +91,11 @@ export class RadarrInstance extends Node<RadarrInstance> {
 
   @ManyToOne(() => User)
   user!: User
+
+  @BeforeCreate()
+  @BeforeUpdate()
+  async testConnection({ entity }: EventArgs<RadarrInstance>): Promise<void> {
+    const api = new RadarrAPI(entity.url, entity.apiKey)
+    await api.testConnection()
+  }
 }

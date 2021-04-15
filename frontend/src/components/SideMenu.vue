@@ -16,16 +16,28 @@
       <i class="el-icon-document"></i>
       <span>Permissions</span>
     </el-menu-item>
+    <el-menu-item index="/test"> Test </el-menu-item>
     <el-menu-item index="/settings">
       <i class="el-icon-setting"></i>
       <span>Settings</span>
     </el-menu-item>
+    <el-menu-item @click="logout"> <span>Logout</span> </el-menu-item>
   </el-menu>
 </template>
 
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
+import { useMainStore } from '../store'
+import { useRoute, useRouter } from 'vue-router'
+import axios from 'axios'
 const route = useRoute()
+const router = useRouter()
+const store = useMainStore()
+
+const logout = async () => {
+  await axios.post('/logout')
+  store.logout()
+  router.push('/login')
+}
 </script>
 
 <style>

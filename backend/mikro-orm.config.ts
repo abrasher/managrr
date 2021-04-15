@@ -1,3 +1,6 @@
+import { EntityManager } from '@mikro-orm/core'
+import { storage } from 'loaders/asyncStorage'
+
 import {
   Genre,
   Movie,
@@ -12,6 +15,7 @@ import {
 } from './entities'
 export default {
   entities: [
+    Node,
     Movie,
     PlexMediaEntity,
     PlexSectionEntity,
@@ -21,8 +25,8 @@ export default {
     Settings,
     Genre,
     User,
-    Node,
   ],
   dbName: 'managrr.db',
   type: 'sqlite' as const,
+  context: (): EntityManager | undefined => storage.getStore(),
 }

@@ -1,7 +1,7 @@
 import { Collection, Entity, ManyToMany, ManyToOne, OneToMany, Property, Unique } from '@mikro-orm/core'
-import { Node } from 'entities'
 import { Field, ObjectType, Root } from 'type-graphql'
 
+import { Node } from './node.entity'
 import { PlexMediaEntity } from './Plex/plexMedia.entity'
 import { RadarrQualityProfile } from './radarr.entity'
 import { RadarrInstance } from './settings.entity'

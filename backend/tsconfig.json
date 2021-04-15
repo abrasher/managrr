@@ -3,21 +3,24 @@
     "baseUrl": ".",
     "target": "es2019",
     "sourceMap": true,
-    "module": "CommonJS",
+    "module": "commonjs",
     "strict": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
+    "moduleResolution": "Node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "typeRoots": ["./types"],
     "esModuleInterop": true,
     "noUnusedLocals": true,
     "noUnusedParameters": false,
     "strictPropertyInitialization": true,
     "lib": ["ES2018", "esnext.asynciterable"],
     "noErrorTruncation": true,
+    "allowUnreachableCode": true,
     "paths": {
       "@resolvers/*": ["./resolvers/*"],
-      "@services/*": ["./services/*"]
+      "@services/*": ["./services/*"],
+      "@entities/*": ["./entities/*"]
+      // "@entities": ["./entities/index"]
     }
   },
   "include": ["*.ts", "**/*.ts"]

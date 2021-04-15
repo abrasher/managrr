@@ -1,0 +1,12 @@
+fragment userFields on PlexUser {
+  id
+  title
+  sharedServers {
+    id
+    machineIdentifier
+    allLibraries
+    libraries {
+      id
+    }
+  }
+}

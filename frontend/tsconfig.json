@@ -2,24 +2,32 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
+
     "moduleResolution": "node",
+    // Used for Vite
     "noUnusedLocals": true,
     "strict": true,
     "jsx": "preserve",
     "sourceMap": true,
-    "resolveJsonModule": true,
     "isolatedModules": true,
     "esModuleInterop": true,
-    "lib": ["esnext", "dom"],
+    "incremental": true,
+    // helps vite not error when importing types
+    "importsNotUsedAsValues": "error",
+    "lib": ["esnext"],
     "types": ["vite/client"],
     "baseUrl": ".",
     "paths": {
-      "@components/*": ["src/components/*"],
-      "@graphql/*": ["src/graphql/*"],
-      "@types/*": ["src/types/*"],
-      "@store/*": ["src/store/*"],
-      "@views/*": ["src/views/*"]
+      "@/*": ["src/*"]
+      // "@components/*": ["src/components/*"],
+      // "@graphql/*": ["src/graphql/*"],
+      // "@typings/*": ["src/typings/*"],
+      // "@store/*": ["src/store/*"],
+      // "@views/*": ["src/views/*"],
+      // "@hooks/*": ["src/hooks/*"],
+      // "@lib/*": ["src/lib/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"],
+  "files": ["vite.config.ts"]
 }

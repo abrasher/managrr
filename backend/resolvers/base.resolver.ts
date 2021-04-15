@@ -1,10 +1,24 @@
 import { resolveSelections } from '@jenyus-org/graphql-utils'
-import { AnyEntity, wrap } from '@mikro-orm/core'
+import { AnyEntity, NotFoundError, UniqueConstraintViolationException, wrap } from '@mikro-orm/core'
 import { EntityClass, EntityName } from '@mikro-orm/core/typings'
-import { GraphQLResolveInfo } from 'graphql'
+import { GraphQLError, GraphQLResolveInfo } from 'graphql'
+import { fromGlobalId, toGlobalId } from 'graphql-relay'
+import { logger } from 'lib/logger'
 import { camelCase } from 'lodash'
 import pluralize from 'pluralize'
-import { Arg, ClassType, Ctx, Field, ID, Info, InputType, Mutation, ObjectType, Query, Resolver } from 'type-graphql'
+import {
+  Arg,
+  ClassType,
+  Ctx,
+  Field,
+  ID,
+  Info,
+  InputType,
+  Mutation,
+  ObjectType,
+  Query,
+  Resolver,
+} from 'type-graphql'
 
 import { ContextType } from '../types'
 import { BaseInput } from './types/base.type'
@@ -13,25 +27,33 @@ const getName = <T>(entity: EntityName<T>): string => {
   return typeof entity === 'string' ? entity : entity.name.toString()
 }
 
+const stripTypename = (fieldArray: string[]): string[] => {
+  return fieldArray.filter((field) => field !== '__typename')
+}
+
 const getFieldsAndSelections = (name: string, info: GraphQLResolveInfo) => {
-  const fields = resolveSelections(
-    [
-      {
-        field: name,
-        selections: ['*.'],
-      },
-    ],
-    info
+  const fields = stripTypename(
+    resolveSelections(
+      [
+        {
+          field: name,
+          selections: ['*.'],
+        },
+      ],
+      info
+    )
   )
 
-  const relations = resolveSelections(
-    [
-      {
-        field: name,
-        selections: ['**.**'],
-      },
-    ],
-    info
+  const relations = stripTypename(
+    resolveSelections(
+      [
+        {
+          field: name,
+          selections: ['**.**'],
+        },
+      ],
+      info
+    )
   )
 
   return { fields, relations }
@@ -44,7 +66,7 @@ export const createBaseResolver = <T extends AnyEntity<T>>(entity: EntityClass<T
 
   @Resolver({ isAbstract: true })
   abstract class BaseResolver {
-    @Query((returns) => entity)
+    @Query((returns) => entity, { name: camelCase(entityName) })
     async getOne(@Ctx() ctx: ContextType, @Info() info: GraphQLResolveInfo): Promise<T | null> {
       const { relations, fields } = getFieldsAndSelections(findAllName, info)
 
@@ -57,22 +79,28 @@ export const createBaseResolver = <T extends AnyEntity<T>>(entity: EntityClass<T
     async getAll(@Ctx() ctx: ContextType, @Info() info: GraphQLResolveInfo): Promise<T[]> {
       const { relations, fields } = getFieldsAndSelections(findAllName, info)
 
-      return await ctx.em.find(entity, {}, { populate: relations, fields })
+      const entities = await ctx.em.find(entity, {}, { populate: relations, fields })
+
+      return entities
     }
   }
 
   return BaseResolver
 }
 
-type MutationPayload<T> = Promise<IPayload<T> | null>
+export type MutationPayload<T> = Promise<IPayload<T> | null>
 
 interface IPayload<T> {
   entity: T | null
-  errors?: Error[]
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const createBaseCRUDResolver = <T extends AnyEntity<T>, A, U extends BaseInput, D>(
+export const createBaseCRUDResolver = <
+  T extends AnyEntity<T>,
+  A extends Record<string, unknown>,
+  U extends BaseInput,
+  D extends BaseInput
+>(
   entity: ClassType<T>,
   addInput: ClassType<A>,
   updateInput: ClassType<U>,
@@ -82,24 +110,26 @@ export const createBaseCRUDResolver = <T extends AnyEntity<T>, A, U extends Base
   const addEntityName = `add${entityName}`
   const updateEntityName = `update${entityName}`
   const removeEntityName = `remove${entityName}`
+  const upsertEntityName = `upsert${entityName}`
 
   const baseResolver = createBaseResolver(entity)
 
-  function Payload<T>(operation: 'Add' | 'Update' | 'Remove') {
-    @ObjectType(`Create${entityName}Payload`)
-    class ResponsePayload {
-      @Field(() => entity, { name: camelCase(entityName) })
-      entity!: T
+  function AddInputType<T extends ClassType>(entity: T) {
+    @InputType(`Add${entityName}Input`, { isAbstract: true })
+    class AddInput {}
 
-      @Field(() => [Error])
-      errors?: Error[]
-    }
+    return AddInput
+  }
 
-    return ResponsePayload
+  function UpdateInputType<T extends ClassType>(entity: T) {
+    @InputType(`Update${entityName}Input`, { isAbstract: true })
+    class UpdateInput {}
+
+    return UpdateInput
   }
 
   function RemoveInputType<T extends ClassType>(entity: T) {
-    @InputType(`Remove${entityName}Input`)
+    @InputType(`Remove${entityName}Input`, { isAbstract: true })
     class RemoveInput {
       @Field(() => ID)
       id!: string
@@ -108,72 +138,106 @@ export const createBaseCRUDResolver = <T extends AnyEntity<T>, A, U extends Base
     return RemoveInput
   }
 
+  function UpsertInputType() {
+    @InputType(`Upsert${entityName}Input`, { isAbstract: true })
+    class UpsertInput extends addInput {
+      @Field(() => ID, { nullable: true })
+      id!: string | null
+    }
+
+    return UpsertInput
+  }
+
+  const AddInput = addInput ?? AddInputType(entity)
+  const UpdateInput = updateInput ?? UpdateInputType(entity)
   const RemoveInput = removeInput ?? RemoveInputType(entity)
+  const UpsertInput = UpsertInputType()
 
   @Resolver({ isAbstract: true })
-  abstract class BaseCRUDResolver extends baseResolver {
-    @Mutation((returns) => Payload('Add'), { name: addEntityName })
+  class BaseCRUDResolver extends baseResolver {
+    @Mutation((returns) => entity, { name: addEntityName })
     async add(
       @Ctx() ctx: ContextType,
       @Info() info: GraphQLResolveInfo,
-      @Arg('input', (type) => addInput) input: A
-    ): MutationPayload<T> {
+      @Arg('input', (type) => AddInput) input: A
+    ): Promise<T> {
       const entityToCreate = ctx.em.create(entity, input)
 
-      await ctx.em.persistAndFlush(entityToCreate)
+      try {
+        await ctx.em.persistAndFlush(entityToCreate)
+      } catch (error) {
+        mikroErrorHandler(error)
+      }
 
-      return {
-        entity: entityToCreate,
+      return entityToCreate as T
+    }
+    @Mutation((returns) => entity, { name: upsertEntityName })
+    async upsert(
+      @Ctx() ctx: ContextType,
+      @Info() info: GraphQLResolveInfo,
+      @Arg('input', (type) => UpsertInput) input: U
+    ) {
+      const { id } = fromGlobalId(input.id)
+      logger.info(`upsert id: ${id}`)
+
+      const entityToUpdate = await ctx.em.findOne(entity, { id })
+
+      const { id: removedId, ...addData } = input
+
+      if (!entityToUpdate) {
+        return this.add(ctx, info, addData as A)
+      } else {
+        return this.update(ctx, info, input)
       }
     }
-    @Mutation((returns) => Payload('Update'), { name: updateEntityName })
+
+    @Mutation((returns) => entity, { name: updateEntityName, nullable: true })
     async update(
       @Ctx() ctx: ContextType,
       @Info() info: GraphQLResolveInfo,
-      @Arg('input', (type) => updateInput) input: U
-    ): MutationPayload<T> {
-      const entityToUpdate = await ctx.em.findOne(entity, { id: input.id })
+      @Arg('input', (type) => UpdateInput) input: U
+    ): Promise<T | null> {
+      const { id } = fromGlobalId(input.id)
 
-      if (entityToUpdate) {
-        wrap(entityToUpdate).assign(input)
+      try {
+        const entityToUpdate = await ctx.em.findOneOrFail(entity, { id })
+        wrap(entityToUpdate).assign({ ...input, id })
         await ctx.em.flush()
-        return {
-          entity: entityToUpdate,
-        }
-      }
-      return {
-        entity: null,
+        return entityToUpdate as T
+      } catch (error) {
+        mikroErrorHandler(error)
+        return null
       }
     }
 
-    @Mutation((returns) => Payload('Remove'), { name: removeEntityName })
+    @Mutation((returns) => entity, { name: removeEntityName, nullable: true })
     async remove(
       @Ctx() ctx: ContextType,
       @Info() info: GraphQLResolveInfo,
       @Arg('input', (type) => RemoveInput) input: D
-    ): MutationPayload<T> {
-      const entityToRemove = await ctx.em.findOne(entity, input)
+    ): Promise<T | null> {
+      const { id } = fromGlobalId(input.id)
+
+      const entityToRemove = await ctx.em.findOneOrFail(entity, { id })
 
       if (entityToRemove) {
         await ctx.em.removeAndFlush(entityToRemove)
-        return {
-          entity: entityToRemove,
-        }
+        return entityToRemove as T
       }
-      return {
-        entity: null,
-      }
+      return null
     }
   }
 
   return BaseCRUDResolver
 }
 
-@ObjectType()
-class Error {
-  @Field()
-  code!: string
-
-  @Field()
-  message!: string
+const mikroErrorHandler = (error: unknown): never => {
+  logger.error(error)
+  if (error instanceof UniqueConstraintViolationException) {
+    throw new GraphQLError('Database Error: Unique Constraint Violation. View log for details')
+  } else if (error instanceof NotFoundError) {
+    throw new GraphQLError('Database Error: Entity not found in database')
+  } else {
+    throw new GraphQLError(error as string)
+  }
 }

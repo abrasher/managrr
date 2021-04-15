@@ -11,16 +11,7 @@ query getUsers {
       }
     }
     users {
-      id
-      title
-      sharedServers {
-        id
-        machineIdentifier
-        allLibraries
-        libraries {
-          id
-        }
-      }
+      ...userFields
     }
   }
 }

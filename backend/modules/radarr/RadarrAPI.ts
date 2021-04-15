@@ -1,19 +1,45 @@
-import { AxiosInstance } from 'axios'
+import { AxiosError, AxiosInstance, AxiosResponse } from 'axios'
 import axios from 'axios'
 
 import { logger } from '../../lib/logger'
-import { AddRadarrPayload, DeleteRadarrPayload, RadarrMovie, UpdateRadarrPayload } from './radarr.interface'
+import {
+  AddRadarrPayload,
+  DeleteRadarrPayload,
+  RadarrMovie,
+  UpdateRadarrPayload,
+} from './radarr.interface'
+
+type ITestResponse = AxiosResponse<{ osName: string | undefined }>
 
 export class RadarrAPI {
   api: AxiosInstance
 
   constructor(url: string, apikey: string) {
     this.api = axios.create({
-      baseURL: url,
+      baseURL: `${url}/api/v3`,
       headers: {
         'x-api-key': apikey,
       },
     })
+  }
+
+  testConnection(): Promise<boolean> {
+    return this.api
+      .get('/system/status')
+      .then((res: ITestResponse) => {
+        if (res?.data?.osName === undefined) {
+          throw new Error(`Radarr Error: Couldn't parse response, is your URL correct?`)
+        }
+        return true
+      })
+      .catch((error: AxiosError): never => {
+        if (error.response?.status === 401) {
+          throw new Error(`Radarr Error: Unauthorized, is your API Key correct?`)
+        } else if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+          throw new Error(`Radarr Error: Server not found, is your URL correct?`)
+        }
+        throw new Error(`Radarr Error: Unknown ${error.message}`)
+      })
   }
 
   async addMovie(input: AddRadarrPayload): Promise<RadarrMovie | null> {
@@ -31,7 +57,9 @@ export class RadarrAPI {
       logger.error(`Radarr API: No Movies Found`)
       return null
     } else if (lookupRes.data.length > 1) {
-      logger.warn(`Radarr API: Found ${lookupRes.data.length} Movies, Adding ${lookupRes.data[0].title}`)
+      logger.warn(
+        `Radarr API: Found ${lookupRes.data.length} Movies, Adding ${lookupRes.data[0].title}`
+      )
     }
 
     const { title, year, images } = lookupRes.data[0]

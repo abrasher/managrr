@@ -1,9 +1,0 @@
-mutation addPlex($data: PlexSettingsInput!) {
-  updatePlex(data: $data) {
-    id
-    friendlyName
-    machineIdentifier
-    url
-    token
-  }
-}

@@ -1,4 +1,4 @@
-export { Genre, Movie, RadarrFile } from './movie.entity'
+export * from './movie.entity'
 export * from './node.entity'
 export { PlexMediaEntity } from './Plex/plexMedia.entity'
 export { PlexSectionEntity } from './Plex/plexSection.entity'

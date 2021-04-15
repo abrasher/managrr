@@ -26,7 +26,7 @@ export class PlexAccountResolver {
   }
 
   @Mutation(() => [PlexUser])
-  async updateUsers(@Arg('data', () => [UpdateUserSharingInput]) data: UpdateUserSharingInput[]): Promise<PlexUser[]> {
+  async updateUsers(@Arg('input', () => [UpdateUserSharingInput]) data: UpdateUserSharingInput[]): Promise<PlexUser[]> {
     return await this.accountService.updateSharing(data)
   }
 }

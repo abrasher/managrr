@@ -1,10 +1,17 @@
 {
   "volar.tsPlugin": true,
   "eslint.workingDirectories": ["./backend", "./frontend"],
-  "editor.codeActionsOnSave": {
-    "source.fixAll": true
-  },
   "typescript.tsdk": "node_modules/typescript/lib",
   "npm.packageManager": "yarn",
-  "favorites.resources": ["backend/controllers"]
+  "favorites.resources": ["backend/controllers"],
+  "cSpell.words": [
+    "Virtualisation",
+    "mikro",
+    "plex",
+    "radarr",
+    "upsert",
+    "urql",
+    "vite",
+    "vitejs"
+  ]
 }

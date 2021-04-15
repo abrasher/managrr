@@ -1,17 +1,14 @@
 query getSettings {
   settings {
+    id
     language
+    plexAccountToken
+    port
   }
   plexInstances {
-    id
-    machineIdentifier
-    friendlyName
-    url
-    token
+    ...plexFields
   }
   radarrInstances {
-    url
-    apiKey
-    instanceName
+    ...radarrFields
   }
 }

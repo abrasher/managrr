@@ -1,17 +1,9 @@
 <template>
   <el-container>
-    <!-- <el-header style="padding: 0px" height="50px">
-      <toolbar title="Permission Manager" :buttons="toolbarButtons"></toolbar>
-    </el-header> -->
     <el-main>
       <div class="content">
         <div class="header">
-          <el-button
-            :disabled="hasDataChanged"
-            :loading="btnState.loading"
-            @click="saveUserData"
-            >Save Changes</el-button
-          >
+          <el-button :loading="isSaving" @click="saveUserData"> Save Changes </el-button>
         </div>
         <div class="grid-area">
           <ag-grid-vue
@@ -19,27 +11,132 @@
             class="ag-theme-alpine permissions-grid"
             :row-data="rowData"
             :column-defs="columnDefs"
-            @first-data-rendered="firstDataRendered"
-          ></ag-grid-vue>
+            :grid-options="gridOptions"
+            :first-data-rendered="firstDataRendered"
+          />
         </div>
       </div>
     </el-main>
   </el-container>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
+import type { FirstDataRenderedEvent, GridOptions } from '@ag-grid-community/core'
 import { AgGridVue } from '@ag-grid-community/vue3'
-import type { IColDef } from '../types'
-import { cloneDeep, isEqual } from 'lodash'
-import { onMounted, reactive, ref, computed } from 'vue'
-import { client } from '../graphql/client'
-import {
-  GetUsersDocument,
-  UpdateUsersDocument,
-} from '../graphql/generated-types'
-import type { FirstDataRenderedEvent } from '@ag-grid-community/core'
+import { useClient, useQuery } from '@urql/vue'
+import { ref } from 'vue'
+
 import CheckboxCellRenderer from '../components/grid/CheckboxCellRenderer'
-import { ElMessage } from 'element-plus'
+import type { GetUsersQuery } from '../graphql/generated-types'
+import { GetUsersDocument, UpdateUsersDocument } from '../graphql/generated-types'
+import { displayMutationMessage } from '../lib/helpers'
+import type { IColDef } from '../types'
+
+const getUsers = useQuery({ query: GetUsersDocument })
+const client = useClient()
+
+const columnDefs = ref<ColDef[]>([])
+const rowData = ref<RowData[] | null>(null)
+
+const isSaving = ref(false)
+
+const gridOptions: GridOptions = {
+  // Required for auto-size columns to affect offscreen columns
+  suppressColumnVirtualisation: true,
+}
+
+const firstDataRendered = ({ columnApi }: FirstDataRenderedEvent) => columnApi.autoSizeAllColumns()
+
+void getUsers.then((result) => {
+  const queryData = result.data.value
+
+  const colDefs: ColDef[] = []
+
+  colDefs.push({
+    field: 'title',
+    headerName: 'Title',
+  })
+
+  rowData.value = transformRows(queryData)
+
+  if (queryData) {
+    for (const server of queryData.account.servers) {
+      const libraryDefs = server.libraries.map(
+        (library): ColDef => ({
+          cellRenderer: CheckboxCellRenderer,
+          headerName: library.title,
+          valueGetter: (params) => params.data[server.clientIdentifier][library.id],
+          valueSetter: (params) => {
+            if (!params.newValue) {
+              params.data[server.clientIdentifier].allLibraries = false
+            }
+            params.data[server.clientIdentifier][library.id] = params.newValue
+            return true
+          },
+        })
+      )
+      colDefs.push({
+        headerName: server.name,
+        children: [
+          {
+            cellRenderer: CheckboxCellRenderer,
+            headerName: 'All Libraries',
+            valueGetter: (params) => params.data[server.clientIdentifier]['allLibraries'],
+            valueSetter: (params) => {
+              if (params.newValue === true) {
+                Object.keys(params.data[server.clientIdentifier]).forEach((key) => {
+                  params.data[server.clientIdentifier][key] = true
+                })
+              } else if (params.newValue === false) {
+                params.data[server.clientIdentifier]['allLibraries'] = params.newValue
+              }
+
+              return true
+            },
+          },
+          ...libraryDefs,
+        ],
+      })
+    }
+  }
+  columnDefs.value = colDefs
+})
+
+const transformRows = (queryData: GetUsersQuery | undefined) => {
+  const rows: RowData[] = []
+
+  if (queryData) {
+    for (const user of queryData.account.users) {
+      const row = {
+        id: user.id,
+        title: user.title,
+      }
+
+      for (const server of queryData.account.servers) {
+        const foundServer = user.sharedServers.find(
+          (ent) => ent.machineIdentifier === server.clientIdentifier
+        )
+
+        const serverData = {
+          allLibraries: foundServer?.allLibraries ?? false,
+        }
+
+        server.libraries.forEach((lib) => {
+          const include = foundServer?.libraries.map((ent) => ent.id).includes(lib.id)
+          const allLibraries = foundServer?.allLibraries ?? false
+
+          Object.assign(serverData, {
+            [lib.id]: allLibraries ? true : include ?? false,
+          })
+        })
+
+        Object.assign(row, { [server.clientIdentifier]: serverData })
+      }
+      rows.push(row as RowData)
+    }
+  }
+  return rows.length === 0 ? null : rows
+}
 
 type RowData = {
   id: string
@@ -54,25 +151,9 @@ type RowData = {
 
 type ColDef = IColDef<RowData>
 
-const oldRowState = ref<RowData[]>()
-const rowData = ref<RowData[]>()
-const columnDefs = ref<ColDef[]>()
-
-const btnState = reactive<{
-  loading: boolean
-}>({
-  loading: false,
-})
-
-const state = reactive({
-  gridLoading: true,
-  saveLoading: false,
-})
-
-const saveUserData = async () => {
-  if (rowData.value === undefined) return
-
-  btnState.loading = true
+const saveUserData = () => {
+  if (!rowData.value) return
+  isSaving.value = true
 
   const mutationData = rowData.value.map((row) => {
     const { id, title, ...serversObjects } = row
@@ -97,128 +178,14 @@ const saveUserData = async () => {
     }
   })
 
-  client
-    .mutate({
-      mutation: UpdateUsersDocument,
-      variables: { data: mutationData },
-      fetchPolicy: 'no-cache',
-    })
-    .then(() => {
-      btnState.loading = false
-      ElMessage.success('Saved Successfully')
-      cacheOldState()
-    })
-    .catch((err) => {
-      console.error(err)
-      ElMessage.error('An Error Occured While Saving')
-      state.saveLoading = false
+  void client
+    .mutation(UpdateUsersDocument, { input: mutationData })
+    .toPromise()
+    .then((result) => {
+      displayMutationMessage(result)
+      isSaving.value = false
     })
 }
-
-const getUserData = async () => {
-  const { data } = await client.query({
-    query: GetUsersDocument,
-    fetchPolicy: 'network-only',
-  })
-
-  rowData.value = data.account.users.map((user) => {
-    const row = {
-      id: user.id,
-      title: user.title,
-    }
-
-    data.account.servers.forEach((serv) => {
-      const foundServer = user.sharedServers.find(
-        (ent) => ent.machineIdentifier === serv.clientIdentifier
-      )
-
-      const serverData = {
-        allLibraries: foundServer?.allLibraries ?? false,
-      }
-
-      serv.libraries.forEach((lib) => {
-        const include = foundServer?.libraries
-          .map((ent) => ent.id)
-          .includes(lib.id)
-        const allLibraries = foundServer?.allLibraries ?? false
-
-        Object.assign(serverData, {
-          [lib.id]: allLibraries ? true : include ?? false,
-        })
-      })
-
-      Object.assign(row, { [serv.clientIdentifier]: serverData })
-    })
-    return row as RowData
-  })
-
-  const colDefs: ColDef[] = data.account.servers.map(
-    (server): ColDef => {
-      const libraryDefs = server.libraries.map(
-        (library): ColDef => ({
-          cellRenderer: CheckboxCellRenderer,
-          headerName: library.title,
-          valueGetter: (params) =>
-            params.data[server.clientIdentifier][library.id],
-          valueSetter: (params) => {
-            if (!params.newValue) {
-              params.data[server.clientIdentifier].allLibraries = false
-            }
-            params.data[server.clientIdentifier][library.id] = params.newValue
-            return true
-          },
-        })
-      )
-      return {
-        headerName: server.name,
-        children: [
-          {
-            cellRenderer: CheckboxCellRenderer,
-            headerName: 'All Libraries',
-            valueGetter: (params) =>
-              params.data[server.clientIdentifier]['allLibraries'],
-            valueSetter: (params) => {
-              if (params.newValue === true) {
-                Object.keys(params.data[server.clientIdentifier]).forEach(
-                  (key) => {
-                    params.data[server.clientIdentifier][key] = true
-                  }
-                )
-              }
-              params.data[server.clientIdentifier]['allLibraries'] =
-                params.newValue
-              return true
-            },
-          },
-          ...libraryDefs,
-        ],
-      }
-    }
-  )
-
-  columnDefs.value = [
-    {
-      field: 'title',
-      headerName: 'Title',
-    },
-    ...colDefs,
-  ]
-}
-
-const firstDataRendered = ({ columnApi }: FirstDataRenderedEvent) => {
-  columnApi.autoSizeAllColumns()
-}
-
-const hasDataChanged = computed(() => isEqual(oldRowState.value, rowData.value))
-
-const cacheOldState = () => {
-  oldRowState.value = cloneDeep(rowData.value)
-}
-
-onMounted(async () => {
-  await getUserData()
-  cacheOldState()
-})
 </script>
 
 <style>

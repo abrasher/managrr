@@ -1,19 +1,30 @@
 <template>
-  <el-container id="main">
-    <el-aside class="side-menu" width="auto"><SideMenu></SideMenu></el-aside>
+  <component :is="layoutComponent" class="layout-container">
     <router-view></router-view>
-  </el-container>
+  </component>
 </template>
 
 <script setup lang="ts">
-import SideMenu from './components/SideMenu.vue'
+import { computed } from '@vue/runtime-core'
+import { useRoute } from 'vue-router'
+import CenteredLayout from './layouts/CenteredLayout.vue'
+import MainLayout from './layouts/MainLayout.vue'
+
+const route = useRoute()
+
+const layoutComponent = computed(() => {
+  switch (route.meta.layout) {
+    case 'center':
+      return CenteredLayout
+    case 'main':
+      return MainLayout
+    default:
+      return MainLayout
+  }
+})
 </script>
 
 <style>
-#main {
-  height: 100vh;
-}
-
 body {
   height: 100vh;
   margin: 0;
@@ -25,8 +36,20 @@ body {
   width: 100vw;
 }
 
-.side-menu {
+#app {
+  height: 100vh;
+}
+
+.layout-container {
+  height: 100vh;
+  width: 100vw;
+}
+
+.el-main {
   height: 100%;
-  width: 100px;
+}
+
+.el-container {
+  height: 100%;
 }
 </style>

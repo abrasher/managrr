@@ -1,11 +1,9 @@
-import { IsUrl } from 'class-validator'
 import { Field, ID, InputType } from 'type-graphql'
 
 import { BaseInput } from './base.type'
 
 @InputType()
 export class AddPlexInstanceInput {
-  @IsUrl()
   @Field({
     description: 'URL of the Plex Server',
   })

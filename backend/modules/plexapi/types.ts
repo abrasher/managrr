@@ -1,8 +1,8 @@
 export enum LibraryType {
   MOVIE = 'movie',
-  MUSIC = 'music',
   PHOTO = 'photo',
   SHOW = 'show',
+  ARTIST = 'artist',
 }
 
 export interface IPlexAccount {

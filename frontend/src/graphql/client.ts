@@ -1,19 +1,18 @@
 import { ApolloClient, InMemoryCache } from '@apollo/client/core'
 
 const client = new ApolloClient({
-  uri: 'http://localhost:4000/graphql',
-  cache: new InMemoryCache({
-    typePolicies: {
-      PlexSharedServer: {
-        fields: {
-          libraries: {
-            merge(existing, incoming) {
-              return incoming
-            },
-          },
-        },
-      },
+  uri: '/graphql',
+  credentials: 'same-origin',
+  defaultOptions: {
+    mutate: {
+      errorPolicy: 'all',
     },
+    query: {
+      errorPolicy: 'all',
+    },
+  },
+  cache: new InMemoryCache({
+    addTypename: false,
   }),
 })
 

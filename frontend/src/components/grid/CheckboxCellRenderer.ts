@@ -1,4 +1,4 @@
-import { ICellRendererComp, ICellRendererParams } from '@ag-grid-community/core'
+import type { ICellRendererComp, ICellRendererParams } from '@ag-grid-community/core'
 
 export default class CheckboxCellRenderer implements ICellRendererComp {
   private eGui!: HTMLInputElement
@@ -16,10 +16,8 @@ export default class CheckboxCellRenderer implements ICellRendererComp {
 
   checkedHandler(e: Event): void {
     const el = e.target as HTMLInputElement
-    //el.checked = false
     const colId = this.params.column.getColId()
     this.params.node.setDataValue(colId, el.checked)
-    //e.preventDefault()
   }
 
   getGui(): HTMLElement {

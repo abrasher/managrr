@@ -7,6 +7,9 @@ watch:
   - 'backend/resolvers/*.ts'
 generates:
   frontend/src/graphql/generated-types.ts:
+    config:
+      skipTypename: true
+      skipTypenameForRoot: true
     plugins:
       - 'typescript'
       - 'typescript-operations'

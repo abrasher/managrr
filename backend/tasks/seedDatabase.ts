@@ -1,27 +1,19 @@
 import { EntityManager } from '@mikro-orm/core'
+import bcrypt from 'bcrypt'
 
 import { PlexInstance, Settings } from '../entities'
 import { RadarrInstance } from '../entities/settings.entity'
 import { User } from '../entities/user.entity'
 
 export const seedDatabase = async (em: EntityManager): Promise<void> => {
-  const settings = await em.findOne(Settings, { id: 1 })
+  const settings = await em.findOne(Settings, { id: 'main' })
   const plexInstances = await em.find(PlexInstance, {})
   const radarrInstances = await em.find(RadarrInstance, {})
-
-  const userRepo = em.getRepository(User)
-
-  const newUser = userRepo.create({
-    name: Math.random(),
-  })
-
-  em.persist(newUser)
+  const userCount = await em.count(User)
 
   const defaultPlex = {
     url: process.env.PLEXURL,
     token: process.env.PLEXTOKEN,
-    machineIdentifier: 'plex2',
-    friendlyName: 'Friendly',
   }
 
   const defaultRadarr = {
@@ -35,6 +27,15 @@ export const seedDatabase = async (em: EntityManager): Promise<void> => {
     plexAccountToken: process.env.PLEXTOKEN,
     plex: [defaultPlex],
     radarrInstances: [defaultRadarr],
+  }
+
+  if (userCount === 0) {
+    const defaultUser = em.create(User, {
+      username: 'admin',
+      password: bcrypt.hashSync('admin', 10),
+    })
+
+    em.persist(defaultUser)
   }
 
   if (plexInstances.length === 0) {
