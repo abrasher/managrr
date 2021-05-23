@@ -2,7 +2,9 @@ import { BaseEntity, Collection, EntityManager } from '@mikro-orm/core'
 import { SqliteDriver } from '@mikro-orm/sqlite'
 import { ContainerInstance } from 'typedi'
 
+import { Node } from './entities'
 import { User } from './entities/user.entity'
+import { INode } from './typings/interfaces'
 
 export interface ContextType {
   em: EntityManager<SqliteDriver>
@@ -11,12 +13,26 @@ export interface ContextType {
   container: ContainerInstance
 }
 
-export type EntityInput<T> = RemoveBaseEntity<Omit<T, keyof RelationsToArray<T>> & RelationsToArray<T>>
+export type EntityInput<T> = RemoveBaseEntity<
+  Omit<T, keyof RelationsToArray<T>> & RelationsToArray<T>
+>
 
 type RelationsToArray<T> = {
   [P in keyof T as T[P] extends Collection<infer K> | Record<string, any> ? P : never]?:
     | CollectionToArray<T[P]>
     | undefined
+}
+
+export type SimpleData<T> = {
+  [Key in keyof T]?: T[Key] extends Collection<infer K> ? SimpleData<RemoveBaseEntity<K>>[] : T[Key]
+}
+
+export type CollToArray<T> = {
+  [P in keyof T]: CollectionToArray<T[P]>
+}
+
+export type DeepPartial<T> = {
+  [P in keyof T]?: DeepPartial<T[P]>
 }
 
 type CollectionToArray<T> = T extends Collection<infer K> ? K[] : T
@@ -25,7 +41,10 @@ type CollectionToArray<T> = T extends Collection<infer K> ? K[] : T
  * Resolves problem that MikroORM requires relationships to be defined as collections
  */
 export type ResolverType<T> = {
-  [P in keyof T]?: (root: T, ...args: unknown[]) => CollectionToArray<T[P]> | Promise<CollectionToArray<T[P]>>
+  [P in keyof T]?: (
+    root: T,
+    ...args: unknown[]
+  ) => CollectionToArray<T[P]> | Promise<CollectionToArray<T[P]>>
 }
 
 export type TypeConvert<T> = {
@@ -33,7 +52,9 @@ export type TypeConvert<T> = {
 }
 
 type Relation<T> = {
-  [P in keyof T as T[P] extends Array<unknown> | Record<string | number | symbol, unknown> ? P : never]?: T[P]
+  [P in keyof T as T[P] extends Array<unknown> | Record<string | number | symbol, unknown>
+    ? P
+    : never]?: T[P]
 }
 
 type Combine<T> = Omit<T, keyof Relation<T>> & Relation<T>
@@ -52,7 +73,7 @@ type Remove<Child, Parent = never> = {
     : Remove<Child[Key], Child>
 }
 
-type RemoveBaseEntity<T> = Omit<T, keyof BaseEntity<T, keyof T>>
+export type RemoveBaseEntity<T> = Omit<T, keyof BaseEntity<T, keyof T>>
 
 type RemoveRecursive<T> = {
   [K in keyof T]: T[K] extends Array<infer Q>

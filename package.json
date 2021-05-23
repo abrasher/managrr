@@ -10,6 +10,7 @@
     "@graphql-codegen/cli": "1.21.1",
     "@graphql-codegen/typed-document-node": "^1.18.2",
     "@graphql-codegen/typescript": "1.21.0",
+    "@graphql-codegen/typescript-apollo-client-helpers": "^1.1.4",
     "@graphql-codegen/typescript-operations": "1.17.14",
     "@graphql-typed-document-node/core": "^3.1.0",
     "@typescript-eslint/eslint-plugin": "^4.16.1",
@@ -30,6 +31,7 @@
   },
   "dependencies": {
     "graphql": "^15.5.0",
-    "graphql-config": "^3.2.0"
+    "graphql-config": "^3.2.0",
+    "ts-node-dev": "^1.1.6"
   }
 }

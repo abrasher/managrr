@@ -1,32 +1,49 @@
-import { AxiosInstance, AxiosResponse } from 'axios'
+import { AxiosInstance } from 'axios'
 
-import { IPlexMedia } from './PlexMedia'
-import { IPlexSection, PlexSection } from './PlexSection'
+import { IPlexSection, MovieSection, ShowSection } from './PlexSection'
+import { PlexServer } from './PlexServer'
+import { LibraryType } from './types'
 
 export class PlexLibrary {
-  private constructor(api: AxiosInstance, public sections: PlexSection[]) {}
+  api: AxiosInstance
 
-  static async build(api: AxiosInstance): Promise<PlexLibrary> {
-    const res: LibraryResponse = await api.get('/library/sections')
+  constructor(public server: PlexServer) {
+    this.api = server.api
+  }
 
-    const sectionPromises = res.data.mediaContainer.directory.map((dir) => {
-      return PlexSection.build(api, dir)
-    })
-    const sections = await Promise.all(sectionPromises)
+  async getSections(): Promise<(MovieSection | ShowSection)[]> {
+    const res = await this.api.get<Root>('/library/sections')
 
-    return new PlexLibrary(api, sections)
+    const sections = res.data.MediaContainer.Directory.flatMap(({ key, type }) =>
+      type === LibraryType.MOVIE
+        ? new MovieSection(this, key)
+        : type === LibraryType.SHOW
+        ? new ShowSection(this, key)
+        : []
+    )
+
+    return sections.flat()
   }
 }
 
-type LibraryResponse = AxiosResponse<{
-  mediaContainer: {
-    // Array of server libraries
-    directory: IPlexSection[]
+interface Root {
+  MediaContainer: {
+    size: number
+    allowSync: boolean
+    identifier: string
+    mediaTagPrefix: string
+    mediaTagVersion: number
+    title1: string
+    Directory: IPlexSection[]
   }
-}>
+}
 
-export type MediaResponse = AxiosResponse<{
-  mediaContainer: {
-    metadata: IPlexMedia[]
-  }
-}>
+export interface MediaContainer {
+  size: number
+  allowSync: boolean
+  identifier: string
+  mediaTagPrefix: string
+  mediaTagVersion: number
+  title1: string
+  Directory: IPlexSection[]
+}

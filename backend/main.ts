@@ -6,19 +6,20 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import express from 'express'
-import { getUser, login, logout, refresh } from 'lib/auth'
-import { buildSchema, registerEnumType, ResolverData } from 'type-graphql'
+import { buildSchema, ResolverData } from 'type-graphql'
 import Container from 'typedi'
-import type { IRequest } from 'types/express'
+import type { IRequest } from '@/typings/express'
 import { v4 as uuidv4 } from 'uuid'
 
-import { CollectionMode, CollectionOrder } from './entities/movie.entity'
-import { Availablity } from './entities/radarr.entity'
+import { getUser, login, logout, refresh } from '@/lib/auth'
+
 import { User } from './entities/user.entity'
+import { logger } from './lib/logger'
+import { getSystemSettings } from './lib/systemSettings'
 import { storage } from './loaders/asyncStorage'
 import { getOrm } from './loaders/database'
-import { LibraryType } from './modules/plexapi'
-import { initImporter } from './tasks/MovieImporter'
+import { registerEnums } from './loaders/graphql'
+import { loadTasks } from './loaders/taskLoader'
 import { seedDatabase } from './tasks/seedDatabase'
 import { ContextType } from './types'
 
@@ -28,29 +29,16 @@ const DEVELOPMENT = true
 async function bootstrap() {
   try {
     const orm = await getOrm()
-
-    initImporter(orm.em.fork() as EntityManager)
+    const systemSettings = getSystemSettings()
 
     await seedDatabase(orm.em)
 
-    registerEnumType(LibraryType, {
-      name: 'PlexLibraryType',
-    })
-
-    registerEnumType(CollectionMode, {
-      name: 'PlexCollectionMode',
-    })
-
-    registerEnumType(CollectionOrder, {
-      name: 'PlexCollectionOrder',
-    })
-
-    registerEnumType(Availablity, {
-      name: 'RadarrAvailablity',
-    })
+    // Register TypeGraphQL Enums
+    registerEnums()
+    loadTasks()
 
     const schema = await buildSchema({
-      resolvers: [__dirname + '/resolvers/*.resolver.ts'],
+      resolvers: [__dirname + '/resolvers/*.resolver.ts', __dirname + '*/**/*.resolver.ts'],
       emitSchemaFile: true,
       container: ({ context }: ResolverData<ContextType>) => Container.of(context.requestId),
     })
@@ -103,6 +91,8 @@ async function bootstrap() {
     app.use('/logout', logout)
     app.use('/refresh', refresh)
 
+    app.use('/img', express.static('assets'))
+
     server.applyMiddleware({
       app,
       cors: {
@@ -111,11 +101,11 @@ async function bootstrap() {
       },
     })
 
-    const port = process.env.PORT ?? 4000
+    const port = process.env.PORT ?? systemSettings.port ?? 4000
 
     app.listen({ port }, () => {
       const url = `http://localhost:${port}${server.graphqlPath}`
-      console.log(`Server is listening at ${url}`)
+      logger.info(`Managrr: Server is listening at ${url}`)
     })
   } catch (err) {
     console.error(err)

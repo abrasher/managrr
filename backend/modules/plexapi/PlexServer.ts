@@ -1,28 +1,19 @@
-import { AxiosError, AxiosInstance, AxiosResponse } from 'axios'
+import { AxiosError, AxiosInstance } from 'axios'
 
 import { getPlex } from './common/axios'
 import { PlexLibrary } from './PlexLibrary'
 
 export class PlexServer {
-  private _library?: PlexLibrary
+  api: AxiosInstance
+  library: PlexLibrary
 
-  private constructor(
-    public api: AxiosInstance,
-    public url: string,
-    public token: string,
-    public friendlyName: string,
-    public machineIdentifier: string
-  ) {}
+  constructor(public url: string, public token: string) {
+    this.api = getPlex(url, token)
+    this.library = new PlexLibrary(this)
+  }
 
-  /**
-   * Create an instance of Plex Server
-   * @param baseURL url of server with http and port
-   * @param token  plex token
-   * @param initialize whether or not to preload all data (default is false)
-   */
-  static async build(baseURL: string, token: string): Promise<PlexServer> {
-    const api = getPlex(baseURL, token)
-    const res: RPlexServer = await api.get('/').catch((error: AxiosError) => {
+  async getDetails(): Promise<IPlexServer> {
+    const res = await this.api.get<Root>('/').catch((error: AxiosError) => {
       console.log(error)
       if (error.response?.status === 401) {
         throw new Error(`Plex Error: Unauthorized, is your token correct?`)
@@ -32,29 +23,80 @@ export class PlexServer {
         throw new Error(`Plex Error: Unknown ${error.message}`)
       }
     })
-    if (res.data.mediaContainer === undefined) {
+    if (res.data.MediaContainer === undefined) {
       throw new Error(`Plex Error: Couldn't parse response, is the URL correct?`)
     }
 
-    const { friendlyName, machineIdentifier } = res.data.mediaContainer
-
-    return new PlexServer(api, baseURL, token, friendlyName, machineIdentifier)
+    return res.data.MediaContainer
   }
 
-  async getLibrary(): Promise<PlexLibrary> {
-    if (this._library) {
-      return this._library
-    }
-    this._library = await PlexLibrary.build(this.api)
-    return this._library
+  uploadPoster(ratingKey: string | number, poster: Buffer): void {
+    this.api.post(`/library/metadata/${ratingKey}/posters`, poster).catch(() => {
+      throw new Error(`Plex Error: Unable to Upload Poster for ${ratingKey}`)
+    })
   }
+}
+
+interface Root {
+  MediaContainer: IPlexServer
 }
 
 interface IPlexServer {
+  size: number
+  allowCameraUpload: boolean
+  allowChannelAccess: boolean
+  allowMediaDeletion: boolean
+  allowSharing: boolean
+  allowSync: boolean
+  allowTuners: boolean
+  backgroundProcessing: boolean
+  certificate: boolean
+  companionProxy: boolean
+  countryCode: string
+  diagnostics: string
+  eventStream: boolean
   friendlyName: string
+  hubSearch: boolean
+  itemClusters: boolean
+  livetv: number
   machineIdentifier: string
+  mediaProviders: boolean
+  multiuser: boolean
+  myPlex: boolean
+  myPlexMappingState: string
+  myPlexSigninState: string
+  myPlexSubscription: boolean
+  myPlexUsername: string
+  offlineTranscode: number
+  ownerFeatures: string
+  photoAutoTag: boolean
+  platform: string
+  platformVersion: string
+  pluginHost: boolean
+  pushNotifications: boolean
+  readOnlyLibraries: boolean
+  requestParametersInCookie: boolean
+  streamingBrainABRVersion: number
+  streamingBrainVersion: number
+  sync: boolean
+  transcoderActiveVideoSessions: number
+  transcoderAudio: boolean
+  transcoderLyrics: boolean
+  transcoderPhoto: boolean
+  transcoderSubtitles: boolean
+  transcoderVideo: boolean
+  transcoderVideoBitrates: string
+  transcoderVideoQualities: string
+  transcoderVideoResolutions: string
+  updatedAt: number
+  updater: boolean
+  version: string
+  voiceSearch: boolean
+  Directory?: Directory[] | null
 }
 
-type RPlexServer = AxiosResponse<{
-  mediaContainer: IPlexServer
-}>
+interface Directory {
+  count: number
+  key: string
+  title: string
+}

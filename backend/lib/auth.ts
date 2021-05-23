@@ -3,7 +3,7 @@ import { AuthenticationError } from 'apollo-server-express'
 import bcrypt from 'bcrypt'
 import { CookieOptions, Handler } from 'express'
 import jwt, { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken'
-import { IRequest } from 'types/express'
+import { IRequest } from '@/typings/express'
 
 import { User } from '../entities/user.entity'
 import { storage } from '../loaders/asyncStorage'

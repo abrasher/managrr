@@ -8,27 +8,38 @@
     active-text-color="#ffd04b"
   >
     <div class="logo">Managrr</div>
-    <el-menu-item index="/">
-      <i class="el-icon-menu"></i>
-      <span>Main</span>
+    <el-menu-item index="/library">
+      <i class="el-icon-film" />
+      <span class="text-lg">Library</span>
     </el-menu-item>
     <el-menu-item index="/permissions">
-      <i class="el-icon-document"></i>
-      <span>Permissions</span>
+      <i class="el-icon-user" />
+      <span class="text-lg">Permissions</span>
     </el-menu-item>
-    <el-menu-item index="/test"> Test </el-menu-item>
-    <el-menu-item index="/settings">
-      <i class="el-icon-setting"></i>
-      <span>Settings</span>
+    <el-submenu index="1">
+      <template #title>
+        <i class="el-icon-setting" />
+        <span class="text-lg">Settings</span>
+      </template>
+      <el-menu-item index="/settings/general">
+        <span class="text-base"> General </span>
+      </el-menu-item>
+      <el-menu-item index="/settings/poster">
+        <span class="text-base"> Poster Generation </span>
+      </el-menu-item>
+    </el-submenu>
+    <el-menu-item index="/system">
+      <i class="el-icon-monitor" />
+      <span class="text-lg">System</span>
     </el-menu-item>
-    <el-menu-item @click="logout"> <span>Logout</span> </el-menu-item>
   </el-menu>
 </template>
 
 <script setup lang="ts">
-import { useMainStore } from '../store'
-import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
+import { useRoute, useRouter } from 'vue-router'
+
+import { useMainStore } from '../store'
 const route = useRoute()
 const router = useRouter()
 const store = useMainStore()
@@ -36,11 +47,11 @@ const store = useMainStore()
 const logout = async () => {
   await axios.post('/logout')
   store.logout()
-  router.push('/login')
+  void router.push('/login')
 }
 </script>
 
-<style>
+<style lang="scss">
 .logo {
   color: #fff;
   text-align: center;
@@ -48,13 +59,11 @@ const logout = async () => {
   padding-bottom: 20px;
   font-size: 24px;
 }
+
 #menu {
+  width: 200px;
   border-right: 0px;
   height: 100%;
-  text-align: center;
-}
-#menu > .el-menu-item {
-  padding-right: 40px;
-  font-size: 16px;
+  text-align: left;
 }
 </style>

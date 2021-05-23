@@ -9,3 +9,5 @@ docs
 dist
 .env
 .stignore
+preview*.jpeg
+backend/backup

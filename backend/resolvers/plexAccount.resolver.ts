@@ -1,6 +1,7 @@
-import { PlexAccountService } from '@services/plexaccount.service'
 import { Arg, FieldResolver, Mutation, Query, Resolver } from 'type-graphql'
 import { Service } from 'typedi'
+
+import { PlexAccountService } from '@/services/plexaccount.service'
 
 import { PlexAccount, PlexDevice, PlexDeviceServer, PlexUser } from '../entities/plexAccount.entity'
 import { UpdateUserSharingInput } from './types/plexAccount.types'
@@ -26,7 +27,9 @@ export class PlexAccountResolver {
   }
 
   @Mutation(() => [PlexUser])
-  async updateUsers(@Arg('input', () => [UpdateUserSharingInput]) data: UpdateUserSharingInput[]): Promise<PlexUser[]> {
+  async updateUsers(
+    @Arg('input', () => [UpdateUserSharingInput]) data: UpdateUserSharingInput[]
+  ): Promise<PlexUser[]> {
     return await this.accountService.updateSharing(data)
   }
 }

@@ -24,9 +24,8 @@ class RadarrLanguage {
   name!: string
 }
 
-
-export enum Availablity {
+export enum Availability {
   ANNOUNCED = 'announced',
   IN_CINEMAS = 'inCinema',
-  RELEASED = 'released'
+  RELEASED = 'released',
 }

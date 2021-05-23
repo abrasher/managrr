@@ -8,7 +8,7 @@
     "moduleResolution": "Node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "typeRoots": ["./types"],
+    // "typeRoots": ["./types"],
     "esModuleInterop": true,
     "noUnusedLocals": true,
     "noUnusedParameters": false,
@@ -16,10 +16,10 @@
     "lib": ["ES2018", "esnext.asynciterable"],
     "noErrorTruncation": true,
     "allowUnreachableCode": true,
+    // for importing package.json
+    "resolveJsonModule": true,
     "paths": {
-      "@resolvers/*": ["./resolvers/*"],
-      "@services/*": ["./services/*"],
-      "@entities/*": ["./entities/*"]
+      "@/*": ["./*"]
       // "@entities": ["./entities/index"]
     }
   },

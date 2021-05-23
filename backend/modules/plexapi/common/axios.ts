@@ -1,7 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
 import { parseString } from 'xml2js'
 import { firstCharLowerCase } from 'xml2js/lib/processors'
-import { camelCase } from 'lodash'
 
 const parseValue = (value: string) => {
   if (/^(?:true|false)$/i.test(value)) {
@@ -48,8 +47,6 @@ export const getPlex = (baseURL: string, token: string): AxiosInstance => {
           }
         )
       }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      response.data = camelizeKeys(response.data)
 
       return response
     },
@@ -89,23 +86,5 @@ const objectParse = (obj: Record<string, unknown>) => {
   return obj
 }
 
-const isObjectArray = (
-  arr: Array<unknown>
-): arr is Array<Record<string, unknown>> =>
+const isObjectArray = (arr: Array<unknown>): arr is Array<Record<string, unknown>> =>
   arr.every((val) => typeof val === 'object' && val !== null)
-
-// @ts-ignore https://stackoverflow.com/a/50620653
-const camelizeKeys = (obj) => {
-  if (Array.isArray(obj)) {
-    return obj.map((v) => camelizeKeys(v))
-  } else if (obj !== null && obj.constructor === Object) {
-    return Object.keys(obj).reduce(
-      (result, key) => ({
-        ...result,
-        [camelCase(key)]: camelizeKeys(obj[key]),
-      }),
-      {}
-    )
-  }
-  return obj
-}

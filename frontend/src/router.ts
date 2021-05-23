@@ -1,7 +1,10 @@
 import { createRouter, createWebHistory, NavigationGuard, RouteRecordRaw } from 'vue-router'
+
 import { useMainStore } from './store/index'
+import LibraryManager from './views/LibraryManager.vue'
 import Login from './views/Login.vue'
-import TestView from './views/TestView.vue'
+import PosterGenerator from './views/PosterGenerator.vue'
+import SystemView from './views/System.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -14,13 +17,11 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/',
-    name: 'Home',
-    component: () => import('./views/Home.vue'),
+    redirect: '/settings',
   },
   {
-    path: '/settings',
-    name: 'Settings',
-    component: () => import('./views/Settings.vue'),
+    path: '/library',
+    component: LibraryManager,
   },
   {
     path: '/permissions',
@@ -28,9 +29,20 @@ const routes: RouteRecordRaw[] = [
     component: () => import('./views/Permissions.vue'),
   },
   {
-    path: '/test',
-    name: 'Test',
-    component: TestView,
+    path: '/system',
+    name: 'System',
+    component: SystemView,
+  },
+  {
+    path: '/settings',
+    alias: '/settings/general',
+    name: 'Settings',
+    component: () => import('./views/Settings.vue'),
+  },
+  {
+    path: '/settings/poster',
+    name: 'Poster',
+    component: PosterGenerator,
   },
 ]
 

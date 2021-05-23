@@ -1,7 +1,5 @@
-export * from './movie.entity'
+export * from '../modules/system/system.entity'
 export * from './node.entity'
-export { PlexMediaEntity } from './Plex/plexMedia.entity'
-export { PlexSectionEntity } from './Plex/plexSection.entity'
 export { PlexAccount } from './plexAccount.entity'
 export { PlexInstance, RadarrInstance, Settings } from './settings.entity'
 export * from './user.entity'

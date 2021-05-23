@@ -5,7 +5,7 @@ const logToFile = (logObject: ILogObject) => {
   appendFileSync('log.txt', JSON.stringify(logObject) + '\n')
 }
 
-const logger = new Logger()
+const logger = new Logger({ type: 'pretty' })
 
 logger.attachTransport(
   {

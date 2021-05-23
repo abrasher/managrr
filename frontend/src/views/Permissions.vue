@@ -12,7 +12,7 @@
             :row-data="rowData"
             :column-defs="columnDefs"
             :grid-options="gridOptions"
-            :first-data-rendered="firstDataRendered"
+            @first-data-rendered="firstDataRendered"
           />
         </div>
       </div>
@@ -23,17 +23,18 @@
 <script lang="ts" setup>
 import type { FirstDataRenderedEvent, GridOptions } from '@ag-grid-community/core'
 import { AgGridVue } from '@ag-grid-community/vue3'
-import { useClient, useQuery } from '@urql/vue'
-import { ref } from 'vue'
+import { ElMessage } from 'element-plus'
+import { ref, watch } from 'vue'
+
+import { client } from '@/graphql/client'
+import { useQuery } from '@/hooks/graphql'
+import type { IColDef } from '@/typings/ag-grid'
 
 import CheckboxCellRenderer from '../components/grid/CheckboxCellRenderer'
 import type { GetUsersQuery } from '../graphql/generated-types'
 import { GetUsersDocument, UpdateUsersDocument } from '../graphql/generated-types'
-import { displayMutationMessage } from '../lib/helpers'
-import type { IColDef } from '../types'
 
-const getUsers = useQuery({ query: GetUsersDocument })
-const client = useClient()
+const { data } = useQuery(GetUsersDocument)
 
 const columnDefs = ref<ColDef[]>([])
 const rowData = ref<RowData[] | null>(null)
@@ -45,10 +46,13 @@ const gridOptions: GridOptions = {
   suppressColumnVirtualisation: true,
 }
 
-const firstDataRendered = ({ columnApi }: FirstDataRenderedEvent) => columnApi.autoSizeAllColumns()
+const firstDataRendered = ({ columnApi }: FirstDataRenderedEvent) => {
+  columnApi.autoSizeAllColumns()
+}
 
-void getUsers.then((result) => {
-  const queryData = result.data.value
+watch(data, (newVal) => {
+  if (newVal === undefined) return
+  const queryData = newVal
 
   const colDefs: ColDef[] = []
 
@@ -56,8 +60,6 @@ void getUsers.then((result) => {
     field: 'title',
     headerName: 'Title',
   })
-
-  rowData.value = transformRows(queryData)
 
   if (queryData) {
     for (const server of queryData.account.servers) {
@@ -100,6 +102,7 @@ void getUsers.then((result) => {
     }
   }
   columnDefs.value = colDefs
+  rowData.value = transformRows(queryData)
 })
 
 const transformRows = (queryData: GetUsersQuery | undefined) => {
@@ -179,11 +182,10 @@ const saveUserData = () => {
   })
 
   void client
-    .mutation(UpdateUsersDocument, { input: mutationData })
-    .toPromise()
-    .then((result) => {
-      displayMutationMessage(result)
+    .mutate({ mutation: UpdateUsersDocument, variables: { input: mutationData } })
+    .then(() => {
       isSaving.value = false
+      ElMessage.success('Saved Successfully')
     })
 }
 </script>

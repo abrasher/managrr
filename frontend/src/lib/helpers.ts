@@ -17,6 +17,24 @@ export const displayErrors = (errors: readonly GraphQLError[]): void => {
 }
 
 export const mapToReactive = <T extends Record<string, unknown>>(array: T[]): T[] =>
-  array.map((entry) => reactive(entry) as T)
+  array.map((entry) => reactive(JSON.parse(JSON.stringify(entry))) as T)
 
-  // arrayRef.value = arrayRef.value.filter((val) => val !== ref)
+export type RecursiveRemove<T, K extends string> = {
+  [Key in keyof T as Key extends K ? never : Key]: T[Key] extends Record<string, unknown>
+    ? RecursiveRemove<T[Key], K>
+    : T[Key] extends Array<infer J>
+    ? RecursiveRemove<J, K>
+    : T[Key]
+}
+
+export const stripProperty = <T, K extends string>(obj: T, prop: K): RecursiveRemove<T, K> => {
+  const { [prop]: _, ...stripedObj } = obj
+  for (const key of Object.keys(stripedObj)) {
+    if (Array.isArray(stripedObj[key])) {
+      stripedObj[key] = stripedObj[key].map((val) => stripProperty(val, prop))
+    } else if (typeof stripedObj[key] === 'object' && stripedObj[key] !== null) {
+      stripedObj[key] = stripProperty(stripedObj[key], prop)
+    }
+  }
+  return stripedObj
+}

@@ -1,23 +1,81 @@
 import {
+  BaseEntity,
   BeforeCreate,
   BeforeUpdate,
-  Collection,
   Entity,
   EventArgs,
   ManyToOne,
-  OneToMany,
+  OneToOne,
   PrimaryKey,
   Property,
   Unique,
 } from '@mikro-orm/core'
 import { PlexServer } from 'modules/plexapi'
 import { Field, ObjectType } from 'type-graphql'
+import { v4 } from 'uuid'
+
+import { ThumbnailOptions } from '@/lib/PosterGenerator'
+import { BlendMode } from '@/modules/system/system.input'
 
 import { RadarrAPI } from '../modules/radarr/RadarrAPI'
-import { RadarrFile } from './movie.entity'
 import { Node } from './node.entity'
-import { PlexSectionEntity } from './Plex/plexSection.entity'
 import { User } from './user.entity'
+
+@Entity()
+@ObjectType()
+export class PosterGenerationSettings
+  extends BaseEntity<PosterGenerationSettings, 'id'>
+  implements ThumbnailOptions {
+  @PrimaryKey()
+  id: string = v4()
+
+  @Property()
+  @Field()
+  SOURCE_OPACITY!: number
+
+  @Property()
+  @Field()
+  DESTINATION_OPACITY!: number
+
+  @Property()
+  @Field(() => BlendMode)
+  BLEND_MODE!: BlendMode
+
+  @Property()
+  @Field()
+  SPACING!: number
+
+  @Property()
+  @Field()
+  GLOBAL_ICON_SCALE!: number
+
+  @Property()
+  @Field()
+  RATING_SCALE!: number
+
+  @Property()
+  @Field()
+  FONT_COLOUR!: 'white' | 'black'
+
+  @Property()
+  @Field()
+  IMAGE_HEIGHT!: number
+
+  @Property()
+  @Field()
+  IMAGE_WIDTH!: number
+
+  @Property()
+  @Field()
+  JPEG_QUALITY!: number
+
+  @Property()
+  @Field()
+  BOX_COLOUR!: string
+
+  @OneToOne(() => Settings, (settings) => settings.posterSettings)
+  settings!: SettingsAlias
+}
 
 @Entity()
 @ObjectType({ implements: Node })
@@ -31,8 +89,22 @@ export class Settings extends Node<Settings> {
 
   @Field({ nullable: true })
   @Property({ nullable: true })
-  plexAccountToken!: string
+  plexAccountToken?: string
+
+  @Field({ nullable: true })
+  @Property({ nullable: true })
+  omdbKey!: string
+
+  @Field({ nullable: true })
+  @Property({ nullable: true })
+  tmdbKey!: string
+
+  @Field(() => PosterGenerationSettings)
+  @OneToOne()
+  posterSettings!: PosterGenerationSettings
 }
+
+type SettingsAlias = typeof Settings
 
 @Entity()
 @ObjectType({ implements: Node })
@@ -54,17 +126,17 @@ export class PlexInstance extends Node<PlexInstance> {
   @Field()
   token!: string
 
-  @OneToMany(() => PlexSectionEntity, (section) => section.server)
-  @Field(() => [PlexSectionEntity])
-  sections = new Collection<PlexSectionEntity>(this)
-
   @ManyToOne(() => User)
   user!: User
 
   @BeforeCreate()
   @BeforeUpdate()
   async before({ entity }: EventArgs<PlexInstance>): Promise<void> {
-    const { friendlyName, machineIdentifier } = await PlexServer.build(entity.url, entity.token)
+    entity.url = entity.url.endsWith('/') ? entity.url.slice(0, -1) : entity.url
+
+    const plexServer = new PlexServer(entity.url, entity.token)
+
+    const { friendlyName, machineIdentifier } = await plexServer.getDetails()
     entity.friendlyName = friendlyName
     entity.machineIdentifier = machineIdentifier
   }
@@ -85,9 +157,6 @@ export class RadarrInstance extends Node<RadarrInstance> {
   @Property()
   @Field()
   instanceName!: string
-
-  @OneToMany(() => RadarrFile, (radarr) => radarr.instance)
-  files = new Collection<RadarrFile>(this)
 
   @ManyToOne(() => User)
   user!: User

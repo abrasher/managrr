@@ -1,5 +1,5 @@
 overwrite: true
-schema: 'http://localhost:4000/graphql'
+schema: 'http://localhost:5000/graphql'
 documents: 'frontend/src/graphql/**/*.graphql'
 watch:
   - 'frontend/src/graphql/**/*.graphql'
@@ -7,10 +7,8 @@ watch:
   - 'backend/resolvers/*.ts'
 generates:
   frontend/src/graphql/generated-types.ts:
-    config:
-      skipTypename: true
-      skipTypenameForRoot: true
     plugins:
       - 'typescript'
       - 'typescript-operations'
       - 'typed-document-node'
+      - typescript-apollo-client-helpers

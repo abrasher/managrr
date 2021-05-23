@@ -4,6 +4,10 @@ query getSettings {
     language
     plexAccountToken
     port
+    omdbKey
+    posterSettings {
+      ...posterFields
+    }
   }
   plexInstances {
     ...plexFields
@@ -11,4 +15,16 @@ query getSettings {
   radarrInstances {
     ...radarrFields
   }
+}
+
+fragment posterFields on PosterGenerationSettings {
+  BLEND_MODE
+  DESTINATION_OPACITY
+  FONT_COLOUR
+  GLOBAL_ICON_SCALE
+  JPEG_QUALITY
+  RATING_SCALE
+  SOURCE_OPACITY
+  SPACING
+  BOX_COLOUR
 }

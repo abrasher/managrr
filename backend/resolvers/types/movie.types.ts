@@ -1,13 +1,13 @@
 import { Field, ID, InputType } from 'type-graphql'
 
 import { RadarrFile } from '../../entities/movie.entity'
-import { Availablity } from '../../entities/radarr.entity'
+import { Availability } from '../../entities/radarr.type'
 import { AddRadarrPayload } from '../../modules/radarr/radarr'
 
 @InputType()
 export class UpdateMovieInput {
   @Field(() => ID)
-  id!: number
+  id!: string
 
   @Field()
   year!: number
@@ -45,8 +45,8 @@ export class AddMovieToRadarrInput {
   @Field()
   search!: boolean
 
-  @Field(() => Availablity)
-  minimumAvailablity!: Availablity
+  @Field(() => Availability)
+  minimumAvailablity!: Availability
 
   @Field(() => [Number])
   tags!: number[]

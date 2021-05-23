@@ -42,6 +42,12 @@ export class RadarrAPI {
       })
   }
 
+  async getMovies(): Promise<RadarrMovie[]> {
+    const res = await this.api.get<RadarrMovie[]>('/movie')
+
+    return res.data
+  }
+
   async addMovie(input: AddRadarrPayload): Promise<RadarrMovie | null> {
     const { tmdbId, minimumAvailablity, monitored, qualityProfileId, tags, search = false } = input
 

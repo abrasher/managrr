@@ -3,6 +3,8 @@
     "target": "esnext",
     "module": "esnext",
 
+    // Allows .vue files to have paths resolved with vite-tsconfig-paths
+    "allowJs": true,
     "moduleResolution": "node",
     // Used for Vite
     "noUnusedLocals": true,
@@ -12,6 +14,7 @@
     "isolatedModules": true,
     "esModuleInterop": true,
     "incremental": true,
+
     // helps vite not error when importing types
     "importsNotUsedAsValues": "error",
     "lib": ["esnext"],
@@ -19,15 +22,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-      // "@components/*": ["src/components/*"],
-      // "@graphql/*": ["src/graphql/*"],
-      // "@typings/*": ["src/typings/*"],
-      // "@store/*": ["src/store/*"],
-      // "@views/*": ["src/views/*"],
-      // "@hooks/*": ["src/hooks/*"],
-      // "@lib/*": ["src/lib/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"],
-  "files": ["vite.config.ts"]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "../backend/**/*.ts"],
+  "files": ["vite.config.ts", "windi.config.ts"]
 }

@@ -1,0 +1,5 @@
+mutation updatePosterSettings($input: PosterGenerationInput!) {
+  updatePosterSettings(input: $input) {
+    ...posterFields
+  }
+}

@@ -15,3 +15,9 @@ export interface IPlexAccount {
 export interface IPlexPath {
   path: string
 }
+
+export type PlexJSON<T> = {
+  MediaContainer: T
+}
+
+

@@ -1,11 +1,23 @@
-import { EntityManager } from '@mikro-orm/sqlite'
+import { MikroORM } from '@mikro-orm/core'
+import {
+  AbstractSqlConnection,
+  AbstractSqlDriver,
+  EntityManager,
+  SqlEntityManager,
+} from '@mikro-orm/sqlite'
 import axios from 'axios'
 import { PlexServer } from 'modules/plexapi'
 
+import { PlexSectionEntity, TASK_NAME } from '@/entities'
+import { getOrm } from '@/loaders/database'
+import { OMDbApi } from '@/modules/omdbapi/OMDbApi'
+import { RadarrAPI } from '@/modules/radarr/RadarrAPI'
+
 import { Movie, RadarrFile } from '../entities/movie.entity'
 import { PlexInstance, RadarrInstance } from '../entities/settings.entity'
-import { log } from '../lib/logger'
-import { EntityData } from '../types'
+import { logger } from '../lib/logger'
+import { DeepPartial } from '../types'
+import { BaseTask } from './BaseTask'
 
 enum TASKSTATUS {
   RUNNING = 'running',
@@ -14,113 +26,149 @@ enum TASKSTATUS {
   FINISHED = 'finished',
 }
 
-export const initImporter = (em: EntityManager): MovieImporter => {
-  return new MovieImporter(em)
-}
+type PartialMovie = DeepPartial<Movie>
+type PartialRadarr = DeepPartial<RadarrFile>
 
-export const getMovieImporter = (): MovieImporter => {
-  return MovieImporter.getInstance()
-}
+class MovieImporterTask extends BaseTask {
+  em!: EntityManager
 
-class MovieImporter {
-  static _instance: MovieImporter
-
-  status: TASKSTATUS
-
-  constructor(private em: EntityManager) {
-    this.status = TASKSTATUS.NOT_STARTED
-    MovieImporter._instance = this
+  constructor() {
+    super(TASK_NAME.importer)
   }
 
-  static getInstance(): MovieImporter {
-    return this._instance
+  private async getEM() {
+    if (this.em) {
+      return this.em
+    }
+    const orm = await getOrm()
+
+    return orm.em.fork()
   }
 
-  async import(plexMachineId: string): Promise<void> {
-    this.status = TASKSTATUS.RUNNING
+  async run() {
+    const em = await this.getEM()
+
+    
+    const radarrInstances = await em.find(RadarrInstance, {})
+
+    
+    const radarrServers = []
+
+    
+
+    
+  }
+
+  async importServer(machineIdentifier: string): Promise<void> {
+    const em = await this.getEM()
+
+    const omdbApi = new OMDbApi('1b1c73a0')
+
+    logger.info(`Managrr: Starting Movie Importer at ${new Date().toISOString()}`)
 
     try {
-      const { url, token } = await this.em.findOneOrFail(PlexInstance, {
-        machineIdentifier: plexMachineId,
+      const serverInstance = await this.em.findOneOrFail(PlexInstance, {
+        machineIdentifier,
       })
 
       const radarrInstances = await this.em.find(RadarrInstance, {})
+
+      logger.debug(`Fetching Radarr Data`)
       const radarrMap = await this.mapRadarr(radarrInstances)
 
-      const plex = await PlexServer.build(url, token)
+      const plex = await PlexServer.build(serverInstance.url, serverInstance.token)
+
       const plexLibrary = await plex.getLibrary()
 
-      const movieSections = await Promise.all(
-        plexLibrary.sections
-          .filter((section) => section.type === 'movie')
-          .map(async (section) => ({
-            ...section,
-            media: await Promise.all(
-              section.media.slice(0, 50).map(async (item) => ({
-                ...item,
-                ids: await item.getIds(),
-              }))
-            ),
-          }))
-      )
+      logger.debug(`Fetching Plex Media Data`)
+      const movieSections = plexLibrary.sections.filter((section) => section.type === 'movie')
 
-      const movieMap = new Map<number, EntityData<Movie>>()
+      const movieMap = new Map<number, PartialMovie>()
 
       for (const section of movieSections) {
+        logger.debug(`Importing Plex Section ${section.title}`)
+        let sectionEntity = await this.em.findOne(PlexSectionEntity, { uuid: section.uuid })
+
+        if (!sectionEntity) {
+          sectionEntity = this.em.create(PlexSectionEntity, { ...section, server: serverInstance })
+        }
+
         for (const movie of section.media) {
-          if (movie.ids.tmdbId) {
-            const movieVal = movieMap.get(movie.ids.tmdbId)
-            const plexMedia = movieVal?.plexMedia ?? []
-            const radarrFiles = radarrMap.get(movie.ids.tmdbId)
+          logger.debug(`${movie.title}: Importing...`)
 
-            const { title, studio, contentRating, year, duration, ratingKey, ids } = movie
+          logger.debug(`${movie.title}: Fetching ids from Plex`)
+          const ids = await movie.getIds()
 
-            movieMap.set(movie.ids.tmdbId, {
+          if (ids.tmdbId) {
+            const movieVal = movieMap.get(ids.tmdbId)
+            const radarrFiles = radarrMap.get(ids.tmdbId)
+
+            const { title, studio, contentRating, year, duration, ratingKey, thumb, rating } = movie
+
+            logger.debug(`${title}: Fetching OMDb Info`)
+            const omdbData = ids.imdbId
+              ? await omdbApi.findByIMDbId(ids.imdbId)
+              : await omdbApi.search(title, year, 'movie')
+
+            const movieData = {
               title,
               studio,
               contentRating,
               year,
               duration,
+              rating,
+              rottenTomatoesRating: omdbData?.Ratings.rottenTomatoes,
+              imdbRating: omdbData?.Ratings.imdb,
+              metacriticRating: omdbData?.Ratings.metacritic,
+              thumb: `${serverInstance.url}${thumb}?X-Plex-Token=${serverInstance.token}`,
               tmdbId: ids.tmdbId,
-              plexMedia: [
-                ...plexMedia,
-                {
-                  ratingKey,
-                  section: {
-                    key: section.key,
-                    title: section.title,
-                    type: section.type,
-                    uuid: section.uuid,
+              plexMedia: mergeArray(
+                [
+                  {
+                    ratingKey,
+                    section: sectionEntity,
                   },
-                },
-              ],
-              radarrs: [...(radarrFiles ?? [])],
-            })
+                ],
+                movieVal?.plexMedia
+              ),
+              ...(radarrFiles ? { radarrs: radarrFiles } : {}),
+            }
+
+            movieMap.set(ids.tmdbId, movieData as DeepPartial<Movie>)
           }
         }
       }
 
+      // iterate over movies and either update or add each movie
       for (const movie of movieMap.values()) {
-        const foundMovie = await this.em.findOne(Movie, { tmdbId: movie.tmdbId })
+        const foundMovie = await this.em.findOne(
+          Movie,
+          { tmdbId: movie.tmdbId },
+          { populate: true }
+        )
 
         if (!foundMovie) {
+          console.log('Creating')
           const newMovie = this.em.create(Movie, movie)
           this.em.persist(newMovie)
         } else {
-          foundMovie.assign(movie, { merge: true })
+          console.log('Assigning')
+          foundMovie.assign(movie)
         }
       }
       await this.em.flush()
       this.em.clear()
+
+      logger.info(`Managrr: Movie Importer Completed at ${new Date().toLocaleDateString()}`)
       this.status = TASKSTATUS.FINISHED
     } catch (err) {
       this.status = TASKSTATUS.ERROR
-      log.error(err)
+      logger.error(err)
     }
   }
 
   private async mapRadarr(instances: Array<RadarrInstance>) {
-    const mediaMap = new Map<number, Array<EntityData<RadarrFile>>>()
+    const mediaMap = new Map<number, Partial<PartialRadarr>[]>()
     for (const instance of instances) {
       const { url, apiKey } = instance
       const res = await axios.get<RadarrData[]>(`${url}/api/v3/movie`, {
@@ -135,11 +183,15 @@ class MovieImporter {
         mediaMap.set(movie.tmdbId, [
           ...mapValue,
           {
-            id: movie.id,
+            instance: {
+              id: instance.id,
+            },
+            radarrId: movie.id,
             monitored: movie.monitored,
             hasFile: movie.hasFile,
             tmdbId: Number(movie.tmdbId),
             imdbId: movie.imdbId,
+            qualityProfileId: movie.qualityProfileId,
           },
         ])
       })
@@ -148,10 +200,21 @@ class MovieImporter {
   }
 }
 
+const ImportTask = new MovieImporterTask()
+
+// Merge an array with an unknown object
+const mergeArray = <T>(src: T[], toAdd: unknown): T[] => {
+  if (Array.isArray(toAdd)) {
+    return [...src, ...toAdd] as T[]
+  }
+  return src
+}
+
 interface RadarrData {
   imdbId: string
   tmdbId: number
   id: number
   monitored: boolean
   hasFile: boolean
+  qualityProfileId: number
 }

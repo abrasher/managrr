@@ -1,21 +1,25 @@
 <template>
-  <div v-if="fetching">Loading</div>
+  <div v-if="loading">Loading</div>
   <div v-else>
-    <h1>Settings</h1>
-    <h3>General</h3>
+    <p class="text-2xl mb-2">Settings</p>
+    <p class="text-xl mb-2">General</p>
     <el-form label-width="120px" label-position="right">
       <el-form-item label="Server Port">
-        <el-input v-model="settings.port" />
+        <el-input v-model.number="settings.port" type="number" />
       </el-form-item>
-      <h3>Plex</h3>
+      <el-form-item label="OMDb Key">
+        <el-input v-model.number="settings.omdbKey" />
+      </el-form-item>
       <el-form-item label="Account Token">
         <el-input v-model="settings.plexAccountToken" />
       </el-form-item>
       <el-form-item>
-        <el-button :loading="loadingButton" @click="updateSettings(settings)">Save</el-button>
+        <el-button :loading="loadingButton" type="primary" @click="updateSettings(settings)"
+          >Save</el-button
+        >
       </el-form-item>
     </el-form>
-    <h4>Plex Instances</h4>
+    <p class="text-lg">Plex Instances</p>
     <el-tabs v-model="currentTabs.plex" addable @tab-add="addTabHandler(plexInstances, 'plex')">
       <el-tab-pane
         v-for="plex in plexInstances"
@@ -23,7 +27,6 @@
         :label="plex.friendlyName ?? 'New Server'"
       >
         <el-form :model="plex" class="form" label-width="120px" label-position="right">
-          <span>{{ plex.id }}</span>
           <el-form-item label="Server URL">
             <el-input v-model="plex.url" placeholder="http://localhost:32400" />
           </el-form-item>
@@ -41,7 +44,7 @@
         </el-form>
       </el-tab-pane>
     </el-tabs>
-    <h4>Radarr Instances</h4>
+    <p class="text-lg">Radarr Instances</p>
     <el-tabs
       v-model="currentTabs.radarr"
       addable
@@ -77,9 +80,10 @@
 </template>
 
 <script setup lang="ts">
-import { useQuery } from '@urql/vue'
+import { cloneDeep } from 'lodash-es'
 import { reactive, ref, watch } from 'vue'
 
+import { useQuery, useRemoveMutation, useUpsertMutation } from '@/hooks/graphql'
 import { mapToReactive } from '@/lib/helpers'
 
 import type { GetSettingsQuery } from '../graphql/generated-types'
@@ -92,14 +96,14 @@ import {
   UpsertRadarrInstanceDocument,
 } from '../graphql/generated-types'
 
-const getSettings = useQuery({ query: GetSettingsDocument, requestPolicy: 'network-only' })
+const { loading, data } = useQuery(GetSettingsDocument)
+
+const formRefs = ref([])
 
 const currentTabs = reactive({
   radarr: '0',
   plex: '0',
 })
-
-const fetching = getSettings.fetching
 
 const addTabHandler = <T>(arr: T[], tabRef: keyof typeof currentTabs) => {
   arr.push(reactive({}) as T)
@@ -111,9 +115,9 @@ const settings = ref({} as GetSettingsQuery['settings'])
 const plexInstances = ref<GetSettingsQuery['plexInstances']>([])
 const radarrInstances = ref<GetSettingsQuery['radarrInstances']>([])
 
-watch(getSettings.data, (data) => {
+watch(data, (data) => {
   if (data === undefined) return
-  settings.value = data.settings
+  settings.value = cloneDeep(data.settings)
   plexInstances.value = mapToReactive(data.plexInstances)
   radarrInstances.value = mapToReactive(data.radarrInstances)
 })

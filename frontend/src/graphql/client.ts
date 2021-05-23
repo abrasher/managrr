@@ -1,5 +1,19 @@
 import { ApolloClient, InMemoryCache } from '@apollo/client/core'
 
+import type { TypedTypePolicies } from '@/graphql/generated-types'
+
+const typePolicies: TypedTypePolicies = {
+  PlexSharedServer: {
+    fields: {
+      libraries: {
+        merge: (existing: [], incoming: []) => {
+          return incoming
+        },
+      },
+    },
+  },
+}
+
 const client = new ApolloClient({
   uri: '/graphql',
   credentials: 'same-origin',
@@ -12,7 +26,7 @@ const client = new ApolloClient({
     },
   },
   cache: new InMemoryCache({
-    addTypename: false,
+    typePolicies,
   }),
 })
 

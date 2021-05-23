@@ -1,4 +1,15 @@
-import type { ElButton, ElCheckbox,ElForm, ElTabs } from 'element-plus'
+import type {
+  ElButton,
+  ElCheckbox,
+  ElForm,
+  ElFormItem,
+  ElInput,
+  ElInputNumber,
+  ElOption,
+  ElSelect,
+  ElTabs,
+} from 'element-plus'
+import type _FormItem from 'element-plus/lib/el-form-item'
 
 // components.d.ts
 declare module 'vue' {
@@ -7,6 +18,11 @@ declare module 'vue' {
     ElTabs: typeof ElTabs
     ElForm: typeof ElForm
     ElCheckbox: typeof ElCheckbox
+    ElInputNumber: typeof ElInputNumber
+    ElInput: typeof ElInput
+    ElFormItem: typeof ElFormItem
+    ElOption: typeof ElOption
+    ElSelect: typeof ElSelect
   }
 }
 
