@@ -1,14 +1,14 @@
 overwrite: true
 schema: 'http://localhost:5000/graphql'
-documents: 'frontend/src/graphql/**/*.graphql'
-watch:
-  - 'frontend/src/graphql/**/*.graphql'
-  - 'backend/entities/*.ts'
-  - 'backend/resolvers/*.ts'
+documents: 'packages/frontend/src/graphql/**/*.graphql'
+# watch:
+#   - 'frontend/src/graphql/**/*.graphql'
+#   - 'backend/entities/*.ts'
+#   - 'backend/resolvers/*.ts'
 generates:
-  frontend/src/graphql/generated-types.ts:
+  packages/frontend/src/graphql/generated-types.ts:
     plugins:
       - 'typescript'
       - 'typescript-operations'
       - 'typed-document-node'
-      - typescript-apollo-client-helpers
+      - 'typescript-apollo-client-helpers'

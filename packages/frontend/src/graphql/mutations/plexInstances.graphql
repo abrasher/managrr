@@ -1,0 +1,19 @@
+mutation removePlexInstance($input: RemovePlexInstanceInput!) {
+  removePlexInstance(input: $input) {
+    ...plexFields
+  }
+}
+
+mutation upsertPlexInstance($input: UpsertPlexInstanceInput!) {
+  upsertPlexInstance(input: $input) {
+    ...plexFields
+  }
+}
+
+fragment plexFields on PlexInstance {
+  id
+  friendlyName
+  machineIdentifier
+  token
+  url
+}

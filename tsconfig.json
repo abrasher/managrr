@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": "./packages",
+    "target": "es2019",
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    // Better than ESLint Rule
+    "noUnusedLocals": true,
+    "noErrorTruncation": true,
+    "lib": ["esnext"],
+    "paths": {
+      "@/frontend/*": ["frontend/src/*"],
+      "@/backend/*": ["backend/*"]
+    }
+  },
+  "exclude": ["node_modules"]
+  // "include": ["./packages/**/*.ts", "./packages/frontend/**/*.vue"]
+}
