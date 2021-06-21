@@ -10,9 +10,18 @@
     "Metascore",
     "OMDBKEY",
     "Signin",
+<<<<<<< Updated upstream
     "Subsampling",
     "TASKSTATUS",
     "Virtualisation",
+=======
+    "Sonarr",
+    "Subsampling",
+    "TASKSTATUS",
+    "Virtualisation",
+    "accum",
+    "apikey",
+>>>>>>> Stashed changes
     "asynciterable",
     "axios",
     "camelize",

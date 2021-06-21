@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 node_modules
 .vscode
 *.db
@@ -11,3 +12,16 @@ dist
 .stignore
 preview*.jpeg
 backend/backup
+=======
+node_modules
+.vscode
+*.db
+.env.local
+backend/logs
+backend/schema.gql
+docs
+*.local
+dist
+.env
+.stignore
+>>>>>>> Stashed changes
