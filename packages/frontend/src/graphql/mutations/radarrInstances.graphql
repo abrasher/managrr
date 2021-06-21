@@ -1,0 +1,18 @@
+mutation upsertRadarrInstance($input: UpsertRadarrInstanceInput!) {
+  upsertRadarrInstance(input: $input) {
+    ...radarrFields
+  }
+}
+
+mutation removeRadarrInstance($input: RemoveRadarrInstanceInput!) {
+  removeRadarrInstance(input: $input) {
+    ...radarrFields
+  }
+}
+
+fragment radarrFields on RadarrInstance {
+  id
+  instanceName
+  url
+  apiKey
+}

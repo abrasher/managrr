@@ -1,0 +1,12 @@
+query getMedia {
+  media {
+    id
+    title
+    year
+    type
+    plexMetadata
+    radarrMetadata
+    omdbMetadata
+    tmdbMetadata
+  }
+}

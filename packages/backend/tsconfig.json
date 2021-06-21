@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "importsNotUsedAsValues": "remove",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "typeRoots": ["./typings"],
+    // "esModuleInterop": true,
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": false,
+    // "strictPropertyInitialization": true,
+    // "lib": ["ES2018", "esnext.asynciterable"],
+    // "noErrorTruncation": true,
+    // "allowUnreachableCode": true,
+    // for importing package.json
+    "resolveJsonModule": true
+  }
+}

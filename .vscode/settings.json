@@ -1,10 +1,54 @@
 {
   "volar.tsPlugin": true,
   "eslint.workingDirectories": ["./backend", "./frontend"],
-  "editor.codeActionsOnSave": {
-    "source.fixAll": true
-  },
   "typescript.tsdk": "node_modules/typescript/lib",
   "npm.packageManager": "yarn",
-  "favorites.resources": ["backend/controllers"]
+  "cSpell.words": [
+    "Bitrates",
+    "ENOTFOUND",
+    "Managrr",
+    "Metascore",
+    "OMDBKEY",
+    "Signin",
+<<<<<<< Updated upstream
+    "Subsampling",
+    "TASKSTATUS",
+    "Virtualisation",
+=======
+    "Sonarr",
+    "Subsampling",
+    "TASKSTATUS",
+    "Virtualisation",
+    "accum",
+    "apikey",
+>>>>>>> Stashed changes
+    "asynciterable",
+    "axios",
+    "camelize",
+    "errored",
+    "imdb",
+    "jenyus",
+    "livetv",
+    "metacritic",
+    "mikro",
+    "multiuser",
+    "nocache",
+    "omdb",
+    "omdbapi",
+    "plex",
+    "plexapi",
+    "plexapp",
+    "radarr",
+    "radarrs",
+    "themoviedb",
+    "tmdb",
+    "transcoder",
+    "tvdb",
+    "typedi",
+    "upsert",
+    "urql",
+    "uuidv",
+    "vite",
+    "vitejs"
+  ]
 }
