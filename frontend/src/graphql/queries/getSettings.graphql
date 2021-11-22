@@ -1,0 +1,33 @@
+query getSettings {
+  settings {
+    id
+    language
+    plexAccountToken
+    port
+    omdbKey
+    posterSettings {
+      BLEND_MODE
+      DESTINATION_OPACITY
+      FONT_COLOUR
+      GLOBAL_ICON_SCALE
+      JPEG_QUALITY
+      RATING_SCALE
+      SOURCE_OPACITY
+      SPACING
+      BOX_COLOUR
+    }
+  }
+  plexInstances {
+    id
+    friendlyName
+    machineIdentifier
+    token
+    url
+  }
+  radarrInstances {
+    id
+    instanceName
+    url
+    apiKey
+  }
+}

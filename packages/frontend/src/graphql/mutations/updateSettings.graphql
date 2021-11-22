@@ -1,8 +1,0 @@
-mutation updateSettings($input: UpdateSettingsInput!) {
-  updateSettings(input: $input) {
-    id
-    language
-    port
-    plexAccountToken
-  }
-}

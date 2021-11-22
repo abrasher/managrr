@@ -1,3 +1,0 @@
-mutation previewPoster($input: PosterGenerationInput!) {
-  previewPoster(input: $input)
-}

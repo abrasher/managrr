@@ -1,0 +1,19 @@
+mutation removePlexInstance($input: RemovePlexInstanceInput!) {
+  removePlexInstance(input: $input) {
+    id
+    friendlyName
+    machineIdentifier
+    token
+    url
+  }
+}
+
+mutation upsertPlexInstance($input: UpsertPlexInstanceInput!) {
+  upsertPlexInstance(input: $input) {
+    id
+    friendlyName
+    machineIdentifier
+    token
+    url
+  }
+}

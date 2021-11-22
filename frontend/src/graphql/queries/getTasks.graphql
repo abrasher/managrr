@@ -1,0 +1,11 @@
+query getSystem {
+  system {
+    version
+    tasks {
+      name
+      started
+      completed
+      status
+    }
+  }
+}
