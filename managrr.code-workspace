@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"typescript.preferences.includePackageJsonAutoImports": "on",
+		"typescript.autoClosingTags": false,
+		"typescript.tsserver.maxTsServerMemory": 6000
+	}
+}

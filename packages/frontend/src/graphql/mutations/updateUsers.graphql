@@ -1,5 +1,0 @@
-mutation updateUsers($input: [UpdateUserSharingInput!]!) {
-  updateUsers(input: $input) {
-    ...userFields
-  }
-}
