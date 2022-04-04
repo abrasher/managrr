@@ -1,9 +1,8 @@
 import { EntityManager, MikroORM } from '@mikro-orm/core'
 import { existsSync, rmSync } from 'fs'
 
-import mikroOrmConfig from '@/backend/mikro-orm.config'
-
 import { logger } from '../common/logger'
+import mikroOrmConfig from '../mikro-orm.config'
 import { PlexInstance, RadarrInstance, Settings } from '../modules/system/settings.entity'
 import { BlendMode } from '../modules/system/system.input'
 

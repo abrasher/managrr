@@ -83,9 +83,8 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive } from '@vue/reactivity'
 import { ElMessage } from 'element-plus'
-import { ref, watch } from 'vue'
+import { ref, watch, reactive } from 'vue'
 
 import type { PosterGenerationInput } from '~/hooks/graphql-generated'
 import { BlendMode, GetSettingsDocument } from '~/hooks/graphql-generated'

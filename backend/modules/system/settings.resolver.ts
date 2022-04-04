@@ -2,9 +2,9 @@ import { GraphQLResolveInfo } from 'graphql'
 import { Arg, Ctx, Info, Mutation, Query, Resolver } from 'type-graphql'
 import { Service } from 'typedi'
 
-import { PlexInstance, RadarrInstance, Settings } from '@/backend/modules/system/settings.entity'
+import { PlexInstance, RadarrInstance, Settings } from '@/modules/system/settings.entity'
 
-import { ContextType } from '../../types'
+import { Context } from '../../types'
 import { createBaseCRUDResolver } from '../graphql/base.resolver'
 import {
   AddPlexInstanceInput,
@@ -18,13 +18,13 @@ import {
 @Resolver((of) => Settings)
 export class SettingsResolver {
   @Query((returns) => Settings)
-  async settings(@Ctx() ctx: ContextType, @Info() info: GraphQLResolveInfo): Promise<Settings> {
+  async settings(@Ctx() ctx: Context, @Info() info: GraphQLResolveInfo): Promise<Settings> {
     return await ctx.em.findOneOrFail(Settings, { id: 'main' }, { populate: true })
   }
 
   @Mutation((returns) => Settings)
   async updateSettings(
-    @Ctx() ctx: ContextType,
+    @Ctx() ctx: Context,
     @Arg('input') input: UpdateSettingsInput
   ): Promise<Settings> {
     const { port, language, plexAccountToken, posterSettings } = input

@@ -1,6 +1,6 @@
 import { Merge } from 'type-fest'
 
-import { getORM } from '@/backend/loaders/database'
+import { getORM } from '@/loaders/database'
 
 import { LibraryType } from '../../externalAPI/plex'
 import { IRadarrMovie, IRadarrMovieFile } from '../../externalAPI/radarr/radarr.interface'

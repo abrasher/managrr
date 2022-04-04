@@ -10,11 +10,7 @@
     "noUnusedLocals": true,
     "noErrorTruncation": true,
     "lib": ["esnext"],
-    "paths": {
-      "@/frontend/*": ["frontend/src/*"],
-      "@/backend/*": ["backend/*"]
-    }
   },
-  "exclude": ["node_modules"]
+  //"exclude": ["node_modules", "frontend/**/*.ts", "backend/**/*.ts"],
   // "include": ["./packages/**/*.ts", "./packages/frontend/**/*.vue"]
 }

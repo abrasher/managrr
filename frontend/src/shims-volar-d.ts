@@ -1,4 +1,4 @@
-import type { Component } from '@vue/runtime-core'
+import type { Component } from 'vue'
 import type VueRouter from 'vue-router'
 
 declare global {

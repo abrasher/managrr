@@ -2,6 +2,10 @@ import 'reflect-metadata'
 
 import { MikroORM } from '@mikro-orm/core'
 
+import {logger} from '@/common/logger'
+
+logger.info('uwu')
+
 import mikroOrmConfig from './mikro-orm.config'
 void (async () => {
   const orm = await MikroORM.init(mikroOrmConfig)

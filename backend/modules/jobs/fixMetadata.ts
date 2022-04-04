@@ -2,7 +2,7 @@
  * Fix Metadata issues with Plex, mainly with media being stuck as recently added due to the added_at value getting corrupted
  */
 
-import { getORM } from '@/backend/loaders/database'
+import { getORM } from '@/loaders/database'
 
 import { PlexServer } from '../externalAPI/plex'
 import { Media } from '../library/media.entity'

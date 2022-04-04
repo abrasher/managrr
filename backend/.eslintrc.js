@@ -19,6 +19,7 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': 'off',
     '@typescript-eslint/no-inferrable-types': 'off',
     '@typescript-eslint/no-unsafe-assignment': 'off',
+    '@typescript-eslint/require-await': 'off', // ApolloServerPlugin conflicts
     // '@typescript-eslint/no-unsafe-member-access': 'off',
     'simple-import-sort/imports': 'error',
     'simple-import-sort/exports': 'error',

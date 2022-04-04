@@ -9,7 +9,7 @@ import {
 } from '@mikro-orm/core'
 import { Field, ObjectType } from 'type-graphql'
 
-import { Node } from '@/backend/modules/graphql/node.entity'
+import { Node } from '@/modules/graphql/node.entity'
 
 import { OMDbMetadata } from './metadatas/omdbMetadata.entity'
 import { PlexMetadata } from './metadatas/plexMetadata.entity'

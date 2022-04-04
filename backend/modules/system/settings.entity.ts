@@ -11,9 +11,9 @@ import {
 import { Field, InputType, ObjectType } from 'type-graphql'
 import { v4 } from 'uuid'
 
-import { PlexServer } from '@/backend/modules/externalAPI/plex'
-import { ThumbnailOptions } from '@/backend/modules/library/PosterGenerator'
-import { BlendMode } from '@/backend/modules/system/system.input'
+import { PlexServer } from '@/modules/externalAPI/plex'
+import { ThumbnailOptions } from '@/modules/library/PosterGenerator'
+import { BlendMode } from '@/modules/system/system.input'
 
 import { RadarrAPI } from '../externalAPI/radarr/RadarrAPI'
 import { Node } from '../graphql/node.entity'

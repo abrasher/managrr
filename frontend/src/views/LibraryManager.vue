@@ -14,14 +14,12 @@
 
 <script lang="ts" setup>
 import { AgGridVue } from '@ag-grid-community/vue3'
-import { onMounted } from '@vue/runtime-core'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
-import { client, Balls } from '~/graphql/client'
-import { GetMediaDocument } from '~/hooks/graphql-generated'
+import { client } from '~/graphql/client'
+import { GetMediaDocument, PlexMetadata, RadarrMetadata, OmDbMetadata, TmdbMetadata } from '~/hooks/graphql-generated'
 import type { IColDef } from '~/typings/ag-grid'
 
-const x: Balls = { size: 9001 }
 
 interface IMedia {
   id: string
@@ -29,8 +27,8 @@ interface IMedia {
   year: number
   plexMetadata: PlexMetadata[]
   radarrMetadata: RadarrMetadata[]
-  omdbMetadata: OMDbMetadata
-  tmdbMetadata: TMDbMetadata
+  omdbMetadata: OmDbMetadata
+  tmdbMetadata: TmdbMetadata
 }
 
 const data = ref<IMedia[]>()

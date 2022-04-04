@@ -1,19 +1,34 @@
 {
-  "extends": "../../tsconfig.json",
+  "ts-node": {
+    "transpileOnly": true,
+    "require": [
+      "typescript-transform-paths/register",
+      "tsconfig-paths/register"
+    ]
+  },
   "compilerOptions": {
+    "strict": true,
+    "baseUrl": ".",
+    "target": "es2019",
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    // Better than ESLint Rule
+    "noUnusedLocals": true,
+    "noErrorTruncation": true,
+    "lib": ["esnext"],
     "module": "commonjs",
     "importsNotUsedAsValues": "remove",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "typeRoots": ["./typings"],
-    // "esModuleInterop": true,
-    // "noUnusedLocals": true,
-    // "noUnusedParameters": false,
-    // "strictPropertyInitialization": true,
-    // "lib": ["ES2018", "esnext.asynciterable"],
-    // "noErrorTruncation": true,
-    // "allowUnreachableCode": true,
-    // for importing package.json
-    "resolveJsonModule": true
-  }
+
+    // For importing package.json
+    "resolveJsonModule": true,
+    "paths": {
+      "@/typings/*": ["typings/*"],
+      "@/modules/*": ["modules/*"],
+      "@/common/*": ["common/*"]
+    }
+  },
+  "include": ["**/*.ts", "*.ts"]
 }

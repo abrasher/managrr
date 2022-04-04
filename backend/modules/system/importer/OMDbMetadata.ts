@@ -1,6 +1,6 @@
 import { CamelCasedPropertiesDeep } from 'type-fest'
 
-import { camelizeKeys } from '@/backend/common/utils'
+import { camelizeKeys } from '@/common/utils'
 
 import { OMDbApi, OMDbMovie } from '../../externalAPI/OMDbApi'
 

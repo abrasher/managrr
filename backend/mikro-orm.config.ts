@@ -1,6 +1,6 @@
 import { EntityManager, Options } from '@mikro-orm/core'
 
-import { storage } from '@/backend/loaders/asyncStorage'
+import { storage } from './loaders/asyncStorage'
 
 const defineConfig = (config: Options) => config
 

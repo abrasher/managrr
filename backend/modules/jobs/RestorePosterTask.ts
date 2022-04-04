@@ -1,8 +1,8 @@
 import fs from 'fs'
 import path from 'path'
 
-import { getORM } from '@/backend/loaders/database'
-import { PlexServer } from '@/backend/modules/externalAPI/plex'
+import { getORM } from '@/loaders/database'
+import { PlexServer } from '@/modules/externalAPI/plex'
 
 import { Media } from '../library/media.entity'
 import { PlexInstance } from '../system/settings.entity'

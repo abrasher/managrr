@@ -1,7 +1,7 @@
 import { Logger } from 'tslog'
 
-import { logger } from '@/backend/common/logger'
-import { TASK_NAME, TASK_STATUS } from '@/backend/modules/system/system.entity'
+import { logger } from '../../common/logger'
+import { TASK_NAME, TASK_STATUS } from '../../modules/system/system.entity'
 
 export abstract class BaseTask {
   constructor(private taskName: TASK_NAME) {

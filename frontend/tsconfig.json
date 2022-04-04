@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "module": "esnext",
-    "target": "esnext",
+    "target": "es2016",
     "lib": ["DOM", "ESNext"],
     "strict": true,
     "esModuleInterop": true,
@@ -15,8 +15,11 @@
     "sourceMap": true,
     "resolveJsonModule": true,
 
-    "types": ["vite/client"],
-    "isolatedModules": true, // Vite related
+    "types": [
+      "vite/client",
+    ],
+    // https://vitejs.dev/guide/features.html#typescript-compiler-options
+    "isolatedModules": true,
 
     "allowJs": true, // Allows .vue files to have paths resolved with vite-tsconfig-paths
 
@@ -24,5 +27,8 @@
       "~/*": ["src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"]
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

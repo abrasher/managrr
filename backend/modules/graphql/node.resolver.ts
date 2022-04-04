@@ -4,7 +4,7 @@ import { fromGlobalId, toGlobalId } from 'graphql-relay'
 import { Arg, Ctx, FieldResolver, ID, Info, Query, Resolver, Root } from 'type-graphql'
 import { Service } from 'typedi'
 
-import { ContextType } from '../../types'
+import { Context } from '../../types'
 import { Node } from './node.entity'
 
 type INode = Node<unknown>
@@ -17,7 +17,7 @@ export class NodeResolver {
     return toGlobalId(info.parentType.name, root.id)
   }
 
-  private async fetcher(globalId: string, context: ContextType) {
+  private async fetcher(globalId: string, context: Context) {
     const { type, id } = fromGlobalId(globalId)
 
     console.log(type)
@@ -32,14 +32,14 @@ export class NodeResolver {
   }
 
   @Query(() => Node, { nullable: true })
-  node(@Arg('id', () => ID) id: string, @Ctx() context: ContextType): Promise<INode | null> {
+  node(@Arg('id', () => ID) id: string, @Ctx() context: Context): Promise<INode | null> {
     return this.fetcher(id, context)
   }
 
   @Query(() => [Node], { nullable: true })
   nodes(
     @Arg('ids', () => [ID]) ids: string[],
-    @Ctx() context: ContextType
+    @Ctx() context: Context
   ): Promise<INode | null>[] {
     return ids.map((id) => this.fetcher(id, context))
   }

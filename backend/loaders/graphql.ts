@@ -1,8 +1,8 @@
 import { registerEnumType } from 'type-graphql'
 
-import { LibraryType } from '@/backend/modules/externalAPI/plex'
-import { TASK_NAME, TASK_STATUS } from '@/backend/modules/system/system.entity'
-import { BlendMode } from '@/backend/modules/system/system.input'
+import { LibraryType } from '../modules/externalAPI/plex'
+import { TASK_NAME, TASK_STATUS } from '../modules/system/system.entity'
+import { BlendMode } from '../modules/system/system.input'
 
 export const registerEnums = (): void => {
   registerEnumType(LibraryType, {

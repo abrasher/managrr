@@ -2,7 +2,7 @@ import { AxiosInstance } from 'axios'
 import { setup } from 'axios-cache-adapter'
 import { CamelCasedPropertiesDeep } from 'type-fest'
 
-import { camelizeKeys } from '@/backend/common/utils'
+import { camelizeKeys } from '@/common/utils'
 
 export class TMDbMetadataAgent {
   readonly agentName = 'TMDb'

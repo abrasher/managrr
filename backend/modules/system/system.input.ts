@@ -1,6 +1,6 @@
 import { Field, InputType } from 'type-graphql'
 
-import { ThumbnailOptions } from '@/backend/modules/library/PosterGenerator'
+import { ThumbnailOptions } from '@/modules/library/PosterGenerator'
 
 import { TASK_NAME } from './system.entity'
 

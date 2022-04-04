@@ -5,20 +5,20 @@ import { join } from 'path'
 import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { Service } from 'typedi'
 
-import { cache } from '@/backend/common/cache'
-import { getTasks, startTask } from '@/backend/modules/jobs/BaseTask'
-import { PosterGenerator } from '@/backend/modules/library/PosterGenerator'
-import { System, Task } from '@/backend/modules/system/system.entity'
-import { version } from '@/backend/package.json'
-import { ContextType } from '@/backend/types'
+import { cache } from '@/common/cache'
+import { getTasks } from '@/modules/jobs/BaseTask'
+import { PosterGenerator } from '@/modules/library/PosterGenerator'
+import { System, Task } from '@/modules/system/system.entity'
 
-import { PosterGenerationInput, RunTaskInput } from './system.input'
+import { version } from '../../../package.json'
+import { Context } from '../../types'
+import { PosterGenerationInput } from './system.input'
 
 @Service()
 @Resolver((returns) => System)
 export class SystemResolver {
   @Query(() => System)
-  system(@Ctx() context: ContextType): System {
+  system(@Ctx() context: Context): System {
     const tasksMap = getTasks()
 
     const tasks: Task[] = []
@@ -39,7 +39,7 @@ export class SystemResolver {
 
   @Mutation((returns) => String)
   async previewPoster(
-    @Ctx() context: ContextType,
+    @Ctx() context: Context,
     @Arg('input') input: PosterGenerationInput
   ): Promise<string> {
     const randomId = Math.random().toString(36).substring(7)

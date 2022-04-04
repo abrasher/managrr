@@ -18,10 +18,9 @@ import {
   Resolver,
 } from 'type-graphql'
 
-import { logger } from '@/backend/common/logger'
-import { INode } from '@/backend/typings/interfaces'
-
-import { ContextType } from '../../types'
+import { logger } from '../../common/logger'
+import { Context } from '../../types'
+import { INode } from '../../typings/interfaces'
 
 const getName = <T>(entity: EntityName<T>): string => {
   return typeof entity === 'string' ? entity : entity.name.toString()
@@ -77,7 +76,7 @@ export const createBaseResolver = (entity: EntityClass<INode>) => {
   abstract class BaseResolver {
     @Query((returns) => entity, { name: camelCase(entityName) })
     async getOne(
-      @Ctx() ctx: ContextType,
+      @Ctx() ctx: Context,
       @Info() info: GraphQLResolveInfo,
       @Arg('input') input: WhereInput
     ): Promise<INode | null> {
@@ -89,7 +88,7 @@ export const createBaseResolver = (entity: EntityClass<INode>) => {
     }
 
     @Query((returns) => [entity], { name: findAllName })
-    async getAll(@Ctx() ctx: ContextType, @Info() info: GraphQLResolveInfo): Promise<INode[]> {
+    async getAll(@Ctx() ctx: Context, @Info() info: GraphQLResolveInfo): Promise<INode[]> {
       const { relations, fields } = getFieldsAndSelections(findAllName, info)
 
       return ctx.em.find(entity, {}, { populate: relations, fields })
@@ -149,7 +148,7 @@ export const createBaseCRUDResolver = <T extends INode>(
   class BaseCRUDResolver extends baseResolver {
     @Mutation((returns) => entity, { name: addEntityName })
     async add(
-      @Ctx() ctx: ContextType,
+      @Ctx() ctx: Context,
       @Info() info: GraphQLResolveInfo,
       @Arg('input', (type) => AddInput) input: T
     ): Promise<T> {
@@ -165,7 +164,7 @@ export const createBaseCRUDResolver = <T extends INode>(
     }
     @Mutation((returns) => entity, { name: upsertEntityName })
     async upsert(
-      @Ctx() ctx: ContextType,
+      @Ctx() ctx: Context,
       @Info() info: GraphQLResolveInfo,
       @Arg('input', (type) => UpsertInput) input: T
     ) {
@@ -186,7 +185,7 @@ export const createBaseCRUDResolver = <T extends INode>(
 
     @Mutation((returns) => entity, { name: updateEntityName, nullable: true })
     async update(
-      @Ctx() ctx: ContextType,
+      @Ctx() ctx: Context,
       @Info() info: GraphQLResolveInfo,
       @Arg('input', (type) => UpdateInput) input: T
     ): Promise<T | null> {
@@ -196,7 +195,7 @@ export const createBaseCRUDResolver = <T extends INode>(
         const entityToUpdate = await ctx.em.findOneOrFail(entity, { id })
         wrap(entityToUpdate).assign({ ...input, id })
         await ctx.em.flush()
-        return entityToUpdate 
+        return entityToUpdate
       } catch (error) {
         mikroErrorHandler(error)
         return null
@@ -205,7 +204,7 @@ export const createBaseCRUDResolver = <T extends INode>(
 
     @Mutation((returns) => entity, { name: removeEntityName, nullable: true })
     async remove(
-      @Ctx() ctx: ContextType,
+      @Ctx() ctx: Context,
       @Info() info: GraphQLResolveInfo,
       @Arg('input', (type) => RemoveInput) input: T
     ): Promise<T | null> {
@@ -215,7 +214,7 @@ export const createBaseCRUDResolver = <T extends INode>(
 
       if (entityToRemove) {
         await ctx.em.removeAndFlush(entityToRemove)
-        return entityToRemove 
+        return entityToRemove
       }
       return null
     }

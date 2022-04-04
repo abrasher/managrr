@@ -3,8 +3,7 @@ import { GraphQLResolveInfo } from 'graphql'
 import { Arg, Ctx, FieldResolver, Info, Mutation, Query, Resolver } from 'type-graphql'
 import { Service } from 'typedi'
 
-import { ContextType } from '@/backend/types'
-
+import { Context } from '../../types'
 import { PlexAccount } from '../externalAPI/plex'
 import { Settings } from '../system/settings.entity'
 import { PlexAccountObject, PlexDevice, PlexDeviceServer, PlexUserObject } from './plexAccount.def'
@@ -17,7 +16,7 @@ export class PlexAccountResolver {
 
   @Query(() => PlexAccountObject)
   async account(
-    @Ctx() ctx: ContextType,
+    @Ctx() ctx: Context,
     @Info() info: GraphQLResolveInfo
   ): Promise<PlexAccountObject> {
     const account = await this.getAccount()

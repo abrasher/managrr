@@ -1,8 +1,7 @@
 import { Ctx, Query, Resolver } from 'type-graphql'
 import { Service } from 'typedi'
 
-import { ContextType, RemoveBaseEntity } from '@/backend/types'
-
+import { Context, RemoveBaseEntity } from '../../types'
 import { Media } from './media.entity'
 
 type IMedia = RemoveBaseEntity<Media>
@@ -11,7 +10,9 @@ type IMedia = RemoveBaseEntity<Media>
 @Resolver((of) => Media)
 export class MediaResolver {
   @Query((of) => [Media])
-  async media(@Ctx() context: ContextType): Promise<IMedia[]> {
+  async media(@Ctx() context: Context): Promise<IMedia[]> {
+    console.log(context)
+
     const media = await context.em.find(Media, {})
 
     return media.map((item) => ({

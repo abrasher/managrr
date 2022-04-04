@@ -1,6 +1,6 @@
 import pLimit from 'p-limit'
 
-import { getORM } from '@/backend/loaders/database'
+import { getORM } from '@/loaders/database'
 
 import { PlexServer } from '../../externalAPI/plex'
 import { IPlexMediaMetadata } from '../../externalAPI/plex/PlexMedia'

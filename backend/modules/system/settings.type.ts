@@ -1,6 +1,6 @@
 import { Field, ID, InputType } from 'type-graphql'
 
-import { PosterGenerationSettings } from '@/backend/modules/system/settings.entity'
+import { PosterGenerationSettings } from '@/modules/system/settings.entity'
 
 @InputType()
 export class UpdateSettingsInput {

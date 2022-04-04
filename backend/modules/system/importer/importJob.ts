@@ -1,4 +1,4 @@
-import { getORM } from '@/backend/loaders/database'
+import { getORM } from '@/loaders/database'
 
 import { Media } from '../../library/media.entity'
 import { Settings } from '../settings.entity'

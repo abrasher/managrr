@@ -1,7 +1,7 @@
 import jimp from 'jimp'
 import path from 'path'
 
-import { BlendMode } from '@/backend/modules/system/system.input'
+import { BlendMode } from '@/modules/system/system.input'
 
 interface ThumbnailProps {
   imdbRating: number

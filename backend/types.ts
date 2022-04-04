@@ -2,7 +2,7 @@ import { BaseEntity, Collection } from '@mikro-orm/core'
 import { SqlEntityManager, SqliteDriver } from '@mikro-orm/sqlite'
 import { ContainerInstance } from 'typedi'
 
-export interface ContextType {
+export interface Context {
   em: SqlEntityManager<SqliteDriver>
   requestId: string
   container: ContainerInstance
